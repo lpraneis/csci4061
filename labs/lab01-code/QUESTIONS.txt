@@ -127,6 +127,11 @@ PROBLEM 1
   Type the command `make' and paste the results of this command below.
   Run the program that results from this compilation and show it below.
 
+[I] ➜ make
+gcc -Wall -g  -c collatz.c
+gcc -Wall -g  -c collatz_main.c
+gcc -Wall -g  -o collcalc collatz.o collatz_main.o
+collcalc is ready
 
 (C) Makefile Targets
 ~~~~~~~~~~~~~~~~~~~~
@@ -141,6 +146,12 @@ PROBLEM 1
   appear in the `Makefile'. Note that many assignments in this class
   will feature some sort of testing target which will run automated
   tests of the correctness of a program.
+
+  Make clean will remove the files as it simply uses a rm -rf command to remove the compiled
+  collcalc program and the collatz_test program along with any object files, *.o files.
+
+  Make test will first run the collatz_test target and then run the ./collcatz_test excutable
+  which runs a series of tests.
 
 
 (D) Compile based on Changes
@@ -158,7 +169,7 @@ PROBLEM 1
   compiles a different set of files.
 
   ,----
-  | > make clean
+  | > make clean          
   | 
   | > make
   | 
@@ -178,6 +189,33 @@ PROBLEM 1
   | 
   | > make                          # intentional repeat
   `----
+
+
+  make clean - make clean will not compile any files, just remove any compiled files
+
+  make - make will run the first target, collcalc, and then run its two dependency
+         targets to compile collatz.o and collatz_main.o. 
+
+  make - The second make will not actually compile any files as all of the collatz files
+         are compiled up to date
+
+  touch collatz.c - This command will just change the time modified stamp on the collatz.c file
+
+  make - Since the collatz.c file has a new timestamp, this make will have to run the collatz.o 
+         target, which recompiles collatz.o, and then will rerun the collcalc target. Since the 
+         collatz_main.c file is not changed, it will not need to rerun the collatz_main.o target
+
+  rm collcalc  - This will simply remove the compiled executable
+
+  make - This make will only need to run the first target as the collatz.o and collatz_main.o dependecies
+         are already up to date
+
+  touch collatz_main.c - This command will just change the time modified stamp on the collatz_main.c file
+
+  make - This make is very similar to the one after touching the collatz.c file, but instead of 
+         recompiling the collatz.o target, it will recompile the collatz_main.o target
+
+  make - This make will not have to recompile any of the targets since all of the source files are up to date
 
 
 PROBLEM 2: Create a `Makefile'
@@ -276,6 +314,33 @@ PROBLEM 2: Create a `Makefile'
 
   Use the `Makefile' provided in the `collatz' directory as a model and
   paste your resulting `Makefile' below.
+
+CFLAGS = -Wall -g
+CC 		 = gcc $(CFLAGS)
+
+op_main: op_main.o outer_product.o free_matrix.o
+	$(CC) -o op_main op_main.o outer_product.o free_matrix.o
+
+op_main.o: mat.h op_main.c
+	$(CC) -c op_main.c
+
+outer_product.o: mat.h outer_product.c
+	$(CC) -c outer_product.c
+
+free_matrix.o: mat.h free_matrix.c
+	$(CC) -c free_matrix.c
+
+test: test_outer_product
+	./test_outer_product
+
+test_outer_product: test_outer_product.o outer_product.o mat.h 
+	$(CC) -o  $@ $^
+
+test_outer_product.o: test_outer_product.c mat.h
+	$(CC) -c $<
+
+clean:
+	rm -f op_main test_outer_product *.o
 
 
 Understanding the Code
