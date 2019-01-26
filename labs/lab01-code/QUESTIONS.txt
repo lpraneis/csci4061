@@ -4,8 +4,8 @@
                            __________________
 
 
-- Name: (FILL THIS in)
-- NetID: (THE kauf0095 IN kauf0095@umn.edu)
+- Name: (Logan Praneis)
+- NetID: (prane001)
 
 Answer the questions below according to the lab specification. Write
 your answers directly in this text file and submit it to complete Lab01.
