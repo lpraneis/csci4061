@@ -1,0 +1,52 @@
+# Makefile to create the collatz programs. To use, type
+#   > make
+# Which will create the collcalc program. Alternatively
+#   > make collcalc
+# will also create the collcalc program.
+#
+# To create the test program and run it do
+#   > make test
+#
+# Makefiles are divided into "rules" comprised of target,
+# dependencies, and commands to execute to finish the target.
+# 
+# target : dependency1 dependency2
+#       command1
+#       command2
+#       @command3 which is not printed
+#       command4
+#
+# Some targets are files to create like the "collcalc" program or
+# "collatz_main.o" file. Other targets are "virtual" which simply
+# specify other targets to do or commands to run.
+
+CFLAGS = -Wall -g                                  # variable holding options to the c compile
+CC     = gcc $(CFLAGS)                             # variable holding the compilation command
+
+collcalc : collatz.o collatz_main.o collatz.h      # collcalc is a program, depends on two files, is default target
+        $(CC) -o collcalc collatz.o collatz_main.o # when the other files are ready, compile collcalc
+        @echo collcalc is ready                    # issue a report that the program is ready
+
+collatz_main.o : collatz_main.c collatz.h          # collatz_main.o depends on two source files
+        $(CC) -c collatz_main.c                    # compile only, don't link yet
+
+collatz.o : collatz.c collatz.h                    # collatz.o depends on collatz.c and collatz.h
+        $(CC) -c $<                                # compile, use shortcut $< which becomes "collatz.c"
+
+test : collatz_test                                # test is another target, depends on collatz_test program
+        ./collatz_test                             # when collatz_test exists, run it
+
+collatz_test : collatz_test.o collatz.o collatz.h  # program depends on several object files and header
+        $(CC) -o $@ $^                             # compile using shortcuts: $@ becomes collatz_test, $^ is all dependecies
+
+collatz_test.o : collatz_test.c collatz.h          # object file depends on C source and header
+        $(CC) -c $<                                # compile to object code using shortcut, $< becomes "collatz_test.c"
+
+clean:                                             # No dependencies: clean is the de facto cleanup target
+        @echo Cleaning up object files             # Report what's happening
+        rm -f *.o                                  # Remove all the .o files which are likely no longer needed
+
+realclean:
+        @echo Removing objects and programs        # "realclean" often used to get rid of everything
+        rm -f *.o collcalc collatz_test            # remove .o and programs that have been built
+

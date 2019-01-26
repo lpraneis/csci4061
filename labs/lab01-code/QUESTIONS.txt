@@ -1,0 +1,292 @@
+                           __________________
+
+                            LAB 01 QUESTIONS
+                           __________________
+
+
+- Name: (FILL THIS in)
+- NetID: (THE kauf0095 IN kauf0095@umn.edu)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1
+=========
+
+  Unzip the provided zip file and change into the lab01/collatz
+  directory.
+
+
+(A) Compiling and Running a C Program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The directory `collatz' contains a small C program that computes
+  sequences of numbers according to the following convention:
+  ,----
+  | For an input number N
+  | - If N is even, set N to N / 2
+  | - If N is odd,  set N to 3*N + 1
+  `----
+  A variety of folks have conjectured that this sequence always reaches
+  1 (see [https://en.wikipedia.org/wiki/Collatz_conjecture]) but and the
+  code provide in the `collatz' directory terminates when this happens.
+
+  We will simply be using the code here to refresh on compiling and
+  running code.
+
+  Issue the following compilation command to compile the program then
+  run it starting the sequence at 17. Show your results.
+
+  ,----
+  | > gcc -o coll collatz.c collatz_main.c 
+  `----
+
+
+(B) Use of Makefiles
+~~~~~~~~~~~~~~~~~~~~
+
+  Compiling more than a few C files together is tedious if one must do
+  so with individual `gcc' invocations. Instead, compiling and linking
+  the files in a larger project is the purvey of a build system.
+
+  On Unix, `make' is the classic tool used to automate the build
+  process.  Instructions on what needs compiling and how to do so are
+  written into a file, traditionally called a `Makefile'. `make' itself
+  is a program which will read through the `Makefile' and execute the
+  commands contained within. Several features are present in `make':
+  - Users specify what needs to be done but `make' will figure out the
+    order to do them in to avoid redundancy.
+  - `make' will only recompiled programs if the source code has
+    changed. If no changes have been made, it may report `Nothing to do'
+    or `So-and-so is already up to date'.
+  - `make' has many shortcuts built into it for common C compilation
+    tasks so that files can be short. However, it can be used to
+    automate many other types of task such as posting HTML pages
+    associated with labs.
+
+  Below is a sample `Makefile' that is present in the `collatz'
+  directory. It can be used to build the project and has extensive
+  comments to explain some of what is happening in the file. Study this
+  carefully and ask questions of the lab staff if needed.
+
+  ,----
+  | # Makefile to create the collatz programs. To use, type
+  | #   > make
+  | # Which will create the collcalc program. Alternatively
+  | #   > make collcalc
+  | # will also create the collcalc program.
+  | #
+  | # To create the test program and run it do
+  | #   > make test
+  | #
+  | # Makefiles are divided into "rules" comprised of target,
+  | # dependencies, and commands to execute to finish the target.
+  | # 
+  | # target : dependency1 dependency2
+  | #       command1
+  | #       command2
+  | #       @command3 which is not printed
+  | #       command4
+  | #
+  | # Some targets are files to create like the "collcalc" program or
+  | # "collatz_main.o" file. Other targets are "virtual" which simply
+  | # specify other targets to do or commands to run.
+  | 
+  | CFLAGS = -Wall -g                                  # variable holding options to the c compile
+  | CC     = gcc $(CFLAGS)                             # variable holding the compilation command
+  | 
+  | collcalc : collatz.o collatz_main.o collatz.h      # collcalc is a program, depends on two files, is default target
+  |         $(CC) -o collcalc collatz.o collatz_main.o # when the other files are ready, compile collcalc
+  |         @echo collcalc is ready                    # issue a report that the program is ready
+  | 
+  | collatz_main.o : collatz_main.c collatz.h          # collatz_main.o depends on two source files
+  |         $(CC) -c collatz_main.c                    # compile only, don't link yet
+  | 
+  | collatz.o : collatz.c collatz.h                    # collatz.o depends on collatz.c and collatz.h
+  |         $(CC) -c $<                                # compile, use shortcut $< which becomes "collatz.c"
+  | 
+  | test : collatz_test                                # test is another target, depends on collatz_test program
+  |         ./collatz_test                             # when collatz_test exists, run it
+  | 
+  | collatz_test : collatz_test.o collatz.o collatz.h  # program depends on several object files and header
+  |         $(CC) -o $@ $^                             # compile using shortcuts: $@ becomes collatz_test, $^ is all dependecies
+  | 
+  | collatz_test.o : collatz_test.c collatz.h          # object file depends on C source and header
+  |         $(CC) -c $<                                # compile to object code using shortcut, $< becomes "collatz_test.c"
+  | 
+  | clean:                                             # No dependencies: clean is the de facto cleanup target
+  |         @echo Cleaning up object files             # Report what's happening
+  |         rm -f *.o                                  # Remove all the .o files which are likely no longer needed
+  | 
+  | realclean:
+  |         @echo Removing objects and programs        # "realclean" often used to get rid of everything
+  |         rm -f *.o collcalc collatz_test            # remove .o and programs that have been built
+  `----
+
+  Type the command `make' and paste the results of this command below.
+  Run the program that results from this compilation and show it below.
+
+
+(C) Makefile Targets
+~~~~~~~~~~~~~~~~~~~~
+
+  The default target in a Makefile is the first one to appear but other
+  targets can also be reference explicitly.  Two common targets we will
+  make use of are
+  - `make clean' : remove all compiled files (and programs)
+  - `make test' : run some automated tests associated with the project
+
+  Run these commands and explain how they relate to the commands that
+  appear in the `Makefile'. Note that many assignments in this class
+  will feature some sort of testing target which will run automated
+  tests of the correctness of a program.
+
+
+(D) Compile based on Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Build systems are useful because they usually detect changes to files
+  in a project and then recompile only those files that are dependent on
+  the changes. This saves time on large projects with many files as not
+  everything needs to be recompiled.  One can simulate a editing a file
+  with the `touch' command which changes the 'timestamp' a file to look
+  like it has been modified recently though its contents will not
+  actually change.
+
+  Issue the following sequence of commands and explain why each `make'
+  compiles a different set of files.
+
+  ,----
+  | > make clean
+  | 
+  | > make
+  | 
+  | > make                          # intentional repeat
+  | 
+  | > touch collatz.c               # simulate edit of collatz_main.c
+  | 
+  | > make
+  | 
+  | > rm collcalc
+  | 
+  | > make
+  | 
+  | > touch collatz_main.c          # simulate edit of collatz_main.c
+  | 
+  | > make                          
+  | 
+  | > make                          # intentional repeat
+  `----
+
+
+PROBLEM 2: Create a `Makefile'
+==============================
+
+  Change into the `mat-product' directory. This directory contains
+  several C files.
+  --------------------------------------------------------------------------------
+   File                  Notes                                                    
+  --------------------------------------------------------------------------------
+   mat.h                 header file listing project functions                    
+   outer_product.c       function that creates an outer product matrix            
+   free_matrix.c         function that frees memory associated with a heap matric 
+   op_main.c             main function which uses two C files above               
+   test_outer_product.c  automated tests for outer_product.c                      
+  --------------------------------------------------------------------------------
+
+  For this problem, create a `Makefile' that will build the project
+  executables and run tests. The following make targets should be
+  available.
+  - `make': build the `op_main' executable which is dependent on
+    functions in `op_main.c, outer_product.c, free_matrix.c'
+  - `make test': builds AND runs the `test_outer_product' executable
+    which is dependent on `test_outer_product.c, outer_product.c'
+  - `make clean': removes all `.o' files and all programs associated
+    with the project.
+  Ensure that Object files are built from each C file to enable
+  efficient separate compilation and linking as is the case in the
+  `collatz/Makefile'.
+
+  A demonstration of the Makefile behavior is below.
+
+  ,----
+  | > make
+  | gcc -g -c op_main.c
+  | gcc -g -c outer_product.c
+  | gcc -g -c free_matrix.c
+  | gcc -g -o op_main op_main.o outer_product.o free_matrix.o
+  | 
+  | > ./op_main 3 1.1 2.2 3.3  2 1.1 2.2
+  |     1.21     2.42 
+  |     2.42     4.84 
+  |     3.63     7.26 
+  | 
+  | > make clean
+  | rm -f *.o op_main test_outer_product
+  | 
+  | > ./op_main 3 1.1 2.2 3.3  2 1.1 2.2
+  | bash: ./op_main: No such file or directory
+  | 
+  | > make test
+  | gcc -g -c test_outer_product.c
+  | gcc -g -c outer_product.c
+  | gcc -g -o test_outer_product test_outer_product.o outer_product.o
+  | ./test_outer_product
+  | Test   1 : passed
+  | Test   2 : passed
+  | Test   3 : passed
+  | Test   4 : passed
+  | Test   5 : passed
+  | Test   6 : passed
+  | Test   7 : passed
+  | Test   8 : passed
+  | -----------------------------
+  | Overall: 8 / 8 tests passed
+  | 
+  | > make test
+  | ./test_outer_product
+  | Test   1 : passed
+  | Test   2 : passed
+  | Test   3 : passed
+  | Test   4 : passed
+  | Test   5 : passed
+  | Test   6 : passed
+  | Test   7 : passed
+  | Test   8 : passed
+  | -----------------------------
+  | Overall: 8 / 8 tests passed
+  | 
+  | > make
+  | gcc -g -c op_main.c
+  | gcc -g -c free_matrix.c
+  | gcc -g -o op_main op_main.o outer_product.o free_matrix.o
+  | 
+  | > touch free_matrix.c
+  | > make
+  | gcc -g -c free_matrix.c
+  | gcc -g -o op_main op_main.o outer_product.o free_matrix.o
+  | 
+  | > ./op_main 3 1.1 2.2 3.3  2 1.1 2.2
+  |     1.21     2.42 
+  |     2.42     4.84 
+  |     3.63     7.26 
+  `----
+
+
+  Use the `Makefile' provided in the `collatz' directory as a model and
+  paste your resulting `Makefile' below.
+
+
+Understanding the Code
+======================
+
+  The focus of this lab is to acquaint you with the utility of Makefiles
+  to recompile only what has changed and some of the common conventions
+  associated with it such as `make clean'.
+
+  While it is not essential that you spend significant time
+  understanding all the code in `collatz' and `mat-product', it is
+  fairly elementary C and students wishing to refresh their knowledge of
+  the language and techniques may want to spend some time examining how
+  this code works.
