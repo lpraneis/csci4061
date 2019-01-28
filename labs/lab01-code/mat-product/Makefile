@@ -1,5 +1,8 @@
 CFLAGS = -Wall -g
 CC 		 = gcc $(CFLAGS)
+.PHONY: clean, test
+
+all: op_main
 
 op_main: op_main.o outer_product.o free_matrix.o
 	$(CC) -o op_main op_main.o outer_product.o free_matrix.o
