@@ -42,6 +42,9 @@ PROBLEM 1
   | > gcc -o coll collatz.c collatz_main.c 
   `----
 
+Output:
+[I] ➜ gcc -o coll collatz.c collatz_main.c
+
 
 (B) Use of Makefiles
 ~~~~~~~~~~~~~~~~~~~~
@@ -127,6 +130,8 @@ PROBLEM 1
   Type the command `make' and paste the results of this command below.
   Run the program that results from this compilation and show it below.
 
+Output:
+
 [I] ➜ make
 gcc -Wall -g  -c collatz.c
 gcc -Wall -g  -c collatz_main.c
@@ -146,6 +151,8 @@ collcalc is ready
   appear in the `Makefile'. Note that many assignments in this class
   will feature some sort of testing target which will run automated
   tests of the correctness of a program.
+
+
 
   Make clean will remove the files as it simply uses a rm -rf command to remove the compiled
   collcalc program and the collatz_test program along with any object files, *.o files.
