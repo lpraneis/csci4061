@@ -26,7 +26,7 @@ def get_links():
 def download_labs(labs_links):
     current_labs = listdir("labs")
     for lab in labs_links:
-        if (lab.split('/')[-1]+"-code") not in current_labs:
+        if (lab.split('/')[-1].split('.')[0]+"-code") not in current_labs:
             r = requests.get(lab)
             soup = BeautifulSoup(r.content, 'html5lib')
             links = soup.findAll('a')
