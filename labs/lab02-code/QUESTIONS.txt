@@ -1,0 +1,81 @@
+                           __________________
+
+                            LAB 02 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1 `fork1.c'
+===================
+
+A
+~
+
+  Compile and run the program in `fork1.c'. Show it's output below.
+
+
+B
+~
+
+  Is the output ordered or disordered with respect to the "I am
+  number..." statements? Why?
+
+
+C
+~
+
+  Add calls to the wait() or waitpid() function to ensure that the
+  output is ordered. Paste your code below.
+
+
+D
+~
+
+  How many parents and children are there in this program? What is their
+  arrangement?
+
+
+PROBLEM 2 `fork-exec1.c'
+========================
+
+A
+~
+
+  Compile and run the program in `fork-exec1.c'. Show it's output below.
+
+
+B
+~
+
+  Adjust the contents of the `child_argv[]' array. Try remove the "-l"
+  element, try adding on ".." prior to the final NULL, or make other
+  modifications INCLUDING for the 0th "ls" string.  Recompile and
+  describe whether the output has changed.
+
+
+C
+~
+
+  Change the child_cmd string from "ls" to be something else like "gcc"
+  or "cat". Recompile ad explain what happens now.
+
+
+D
+~
+
+  Currently `fork-exec1.c' does not reach the bottom statements.
+  ,----
+  |   printf("------------------\n");
+  |   printf("Finished\n");
+  `----
+  Correct this by doing the following:
+  - Fork a child process
+  - Have ONLY the child process call execvp()
+  - Have the parent process wait() for the child
+  Paste your code below.
