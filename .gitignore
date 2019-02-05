@@ -1,5 +1,5 @@
 books/
 
 labs/lab01-code/collatz/coll
+projects/a1-code/test-data/*.tmp
  *.out
- *.tmp
