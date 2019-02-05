@@ -19,11 +19,11 @@ def get_links():
 
     code_links = [page_url + link['href'] for link in links if link['href'].endswith('zip')]
     notes_links = [page_url + link['href'] for link in links if link['href'].endswith('pdf')]
-    labs_links = [page_url + link['href'] for link in links if link['href'].endswith('html')]
+    labs_links = [page_url + link['href'] for link in links if link['href'].endswith('html') and link['href'].split('/')[-1][0]!="a"]
 
 
     
-    return code_links, notes_links, labs_links
+    return code_links, notes_links, labs_links 
 
 def download_labs(labs_links):
     current_labs = listdir("labs")
@@ -46,7 +46,6 @@ def download_labs(labs_links):
                     zip_ref.close()
                     remove(file_name)
                     written_files.append(file_name)
-            
 
 
 def download_code_zips(code_links):
