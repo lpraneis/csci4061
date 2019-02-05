@@ -1,0 +1,57 @@
+#!/usr/bin/awk -f
+
+# Standardize the output of running commando.
+# 
+# Convert #PIDs in commando output to %1, %2, etc so that output can
+# be relied upon in testing.
+#
+# Re-order @!!! messagse which may occur at unexpected times
+
+BEGIN{
+  curpid = 0
+  alerts = ""
+}
+
+
+# Substitute PIDs for %%%%%1 and such
+{
+  while(match($0,/#[0-9]+/)!=0){
+    p=substr($0,RSTART,RLENGTH)
+    if(!(p in PIDS)){
+      num = sprintf("%%%d",curpid)   # get the width of the replacement to match
+      for(i=length(num); i<RLENGTH; i++){
+        num = num " "                # pad with spaces
+      }
+      PIDS_PAD[p] = num
+      PIDS[p] = "%" curpid
+      curpid++;
+    }
+    # print "--------" 
+    # print $0 
+    # print "'" substr($0,RSTART+RLENGTH,1) "'" 
+    # print "--------" 
+
+    if(substr($0,RSTART+RLENGTH,1)==" "){
+      gsub(p,PIDS_PAD[p]);
+    }
+    else{
+      gsub(p,PIDS[p]);
+    }
+  }
+}
+
+# Capture alerts for later
+/@!!!/{
+  alerts = alerts $0 "\n"
+  next
+}
+
+# Print all other lines
+{
+  print
+}
+
+END{
+  print "ALERTS:"
+  printf("%s",alerts)
+}
