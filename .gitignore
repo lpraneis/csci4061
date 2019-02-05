@@ -2,3 +2,4 @@ books/
 
 labs/lab01-code/collatz/coll
  *.out
+ *.tmp
