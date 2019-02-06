@@ -4,7 +4,3 @@ grade for it.
 PARTNER 1
 - Name  : (Logan Praneis)
 - Email : (prane001@umn.edu)
-
-PARTNER 2:
-- Name  : (full name)
-- Email : (UMN email)
