@@ -2,6 +2,7 @@ CFLAGS = -Wall -g
 CC 		 = gcc $(CFLAGS)
 DEPS = commando.h
 OBJ = cmd.o cmdcol.o util.o commando.o
+TOBJ = test_functions.o cmd.o cmdcol.o test_utils.o
 
 .PHONY: clean, test, clean-tests, test-functions, test-commando
 
