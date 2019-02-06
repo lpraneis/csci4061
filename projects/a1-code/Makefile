@@ -1,4 +1,4 @@
-CLAGS = -Wall -g
+CFLAGS = -Wall -g
 CC 		 = gcc $(CFLAGS)
 DEPS = commando.h
 OBJ = cmd.o cmdcol.o util.o commando.o
@@ -7,10 +7,10 @@ OBJ = cmd.o cmdcol.o util.o commando.o
 
 # Normal Targets
 commando: $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) -o $@ $^
 
 %.o: %.c $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) -c -o $@ $<
 
 clean:
 	rm -f commando $(OBJ) $(TOBJ)
