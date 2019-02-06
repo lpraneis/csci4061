@@ -2,7 +2,33 @@
 // cmd.c: functions related the cmd_t struct abstracting a
 // command. Most functions maninpulate cmd_t structs.
 
-cmd_t *cmd_new(char *argv[]);
+cmd_t *cmd_new(char *argv[]) {
+  cmd_t *new;
+  int i;
+  char *init = "INIT";
+  new = (cmd_t *)malloc(sizeof(cmd_t));
+
+  for (i = 0; i < ARG_MAX +1; i++){
+    if (argv[i] != NULL ){
+      new->argv[i] = strdup(argv[i]);
+    } else {
+      new->argv[i] = NULL; //sets the last element to NULL
+      break;
+    }
+  }
+
+
+  strcpy(new->name, new->argv[0]); //copies the argv[0] to name
+  snprintf(new->str_status, 5, "%s", init); //set str_status to INIT
+  new->pid = -1;
+  new->out_pipe[0] = -1;
+  new->out_pipe[1] = -1;
+  new->finished = 0;
+  new->status = -1;
+  new->output = NULL;
+  new-> output_size = -1;
+  return new;
+}
 // Allocates a new cmd_t with the given argv[] array. Makes string
 // copies of each of the strings contained within argv[] using
 // strdup() as they likely come from a source that will be
