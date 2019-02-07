@@ -37,7 +37,20 @@ cmd_t *cmd_new(char *argv[]) {
 // str_status to be "INIT" using snprintf(). Initializes the remaining
 // fields to obvious default values such as -1s, and NULLs.
 
-void cmd_free(cmd_t *cmd);
+void cmd_free(cmd_t *cmd){
+  for(int i=0; i < ARG_MAX+1;i++){ //free each string in argv
+    if (cmd->argv[i]!=NULL){
+      free(cmd->argv[i]);
+    } else {
+      break;
+    }
+  }
+
+  if (cmd->output != NULL)
+    free(cmd->output);
+  
+  free(cmd);
+}
 // Deallocates a cmd structure. Deallocates the strings in the argv[]
 // array. Also deallocats the output buffer if it is not
 // NULL. Finally, deallocates cmd itself.
