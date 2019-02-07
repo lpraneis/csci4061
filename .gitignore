@@ -2,5 +2,5 @@ books/
 
 labs/lab01-code/collatz/coll
 projects/a1-code/test-data/*.tmp
+projects/a1-code/Session.vim
  *.out
- Session.vim
