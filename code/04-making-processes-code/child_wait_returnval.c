@@ -24,16 +24,5 @@ int main(int argc, char* argv){
   }
   else{
     int status;
-    wait(&status);                                      // wait for child to finish, collect status
-    if(WIFEXITED(status)){
-      int retval = WEXITSTATUS(status);                 // decode status to 0-255
-      printf("Great, junior %d did that and told me '%d'\n",
-             child_pid, retval);
-      if(retval != 0){                                  // nonzero exit codes usually indicate failure
-        printf("That little punk gave me a non-zero return. I'm glad he's dead\n");
-      }
-    }
+    wait(&status);
   }
-  return 0;
-}
-  
