@@ -18,17 +18,22 @@ int main(int argc, char **argv){
     echoing =1;
   }
 
-
-
   while(1){
     printf("@> ");
     fgets(user_raw_input, MAX_LINE, stdin);
-
     parse_into_tokens(user_raw_input, user_input, &num_tokens);
-    if (user_input == NULL ) {
+    if (user_input[0] == NULL  ) {
       // the user just hit enter
       continue;
     } 
+
+    if(echoing){ //prints the command sent to commando if not stdin 
+      for(int i = 0; i < num_tokens; i++) {
+        printf("%s ", user_input[i]);
+      } 
+      printf("\n");
+    }
+
 
     if (strcmp("help", user_input[0]) == 0) {
       //user pressed help
@@ -38,7 +43,7 @@ int main(int argc, char **argv){
     } else if (strcmp("list", user_input[0]) == 0){
       break;
     } else if (strcmp("pause", user_input[0]) == 0){
-      break;
+      pause_for(atoi(user_input[1]), atoi(user_input[2]));
     } else if (strcmp("output-for", user_input[0]) == 0){
       break;
     } else if (strcmp("output-all", user_input[0]) == 0){
