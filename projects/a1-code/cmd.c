@@ -116,7 +116,7 @@ void cmd_update_state(cmd_t *cmd, int block){
 // which includes the command name, PID, and exit status.
 
 char *read_all(int fd, int *nread){
-  //todo
+  //todo, add this func
 };
 // Reads all input from the open file descriptor fd. Stores the
 // results in a dynamically allocated buffer which may need to grow as
