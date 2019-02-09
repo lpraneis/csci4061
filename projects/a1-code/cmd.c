@@ -55,7 +55,24 @@ void cmd_free(cmd_t *cmd){
 // array. Also deallocats the output buffer if it is not
 // NULL. Finally, deallocates cmd itself.
 
-void cmd_start(cmd_t *cmd);
+void cmd_start(cmd_t *cmd){
+  //first, create a pipe 
+  pipe(cmd->out_pipe);
+  snprintf(cmd->str_status, 4, "%s", "RUN"); //copy RUN to str_status
+  cmd->pid = fork();
+  if (cmd->pid == 0){ //child process
+    dup2(STDOUT_FILENO, cmd->out_pipe[PWRITE]); //alter output from stdout to pipe
+    close(cmd->out_pipe[PREAD]); //close the reading end
+    execvp(cmd->name, cmd->argv);
+
+  } else { //parent process
+    close(cmd->out_pipe[PWRITE]); //close the writing end
+
+    //ensures that the pid field is set to the child PID?
+  }
+
+}
+
 // Forks a process and starts executes command in cmd in the process.
 // Changes the str_status field to "RUN" using snprintf().  Creates a
 // pipe for out_pipe to capture standard output.  In the parent
