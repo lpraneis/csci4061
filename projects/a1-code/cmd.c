@@ -1,5 +1,5 @@
 #include "commando.h"
-#define BUF_READ_SIZE  128
+#define BUF_READ_SIZE  128 //this is for the amount that is read at a time by the read_all function
 // cmd.c: functions related the cmd_t struct abstracting a
 // command. Most functions maninpulate cmd_t structs.
 
@@ -29,6 +29,8 @@ cmd_t *cmd_new(char *argv[]) {
   new->output_size = -1;
   return new;
 }
+
+
 // Allocates a new cmd_t with the given argv[] array. Makes string
 // copies of each of the strings contained within argv[] using
 // strdup() as they likely come from a source that will be
@@ -151,6 +153,7 @@ void cmd_fetch_output(cmd_t *cmd) {
   cmd->output = read_all(cmd->out_pipe[PREAD], &cmd->output_size);
   close(cmd->out_pipe[PREAD]);
 }
+
 // If cmd->finished is zero, prints an error message with the format
 //
 // ls[#12341] not finished yet

@@ -3,13 +3,14 @@
 void print_help();
 void check_processes();
 
+int num_tokens;
+
 int main(int argc, char **argv){
 
   setvbuf(stdout, NULL, _IONBF, 0); // Turn off output buffering via instructions
   char user_raw_input[MAX_LINE];
   char **user_input = malloc(ARG_MAX * NAME_MAX);
 
-  int num_tokens;
   static int echoing;
 
 
