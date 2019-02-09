@@ -45,7 +45,7 @@ int main(int argc, char **argv){
       break;
     } else if (strcmp("pause", user_input[0]) == 0){
       pause_for(atoi(user_input[1]), atoi(user_input[2]));
-      check_processes();
+      /* check_processes(); */
     } else if (strcmp("output-for", user_input[0]) == 0){
       break;
     } else if (strcmp("output-all", user_input[0]) == 0){

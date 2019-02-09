@@ -19,6 +19,7 @@ clean:
 # Testing Targets
 test : test-functions test-commando
 
+
 test-functions : test_functions
 	@printf "Tests for correctness of functions\n"
 	./test_functions

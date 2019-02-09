@@ -1,4 +1,5 @@
 #include "commando.h"
+#define BUF_READ_SIZE  128
 // cmd.c: functions related the cmd_t struct abstracting a
 // command. Most functions maninpulate cmd_t structs.
 
@@ -8,25 +9,24 @@ cmd_t *cmd_new(char *argv[]) {
   char *init = "INIT";
   new = (cmd_t *)malloc(sizeof(cmd_t));
 
-  for (i = 0; i < ARG_MAX +1; i++){
-    if (argv[i] != NULL ){
+  for (i = 0; i < ARG_MAX + 1; i++) {
+    if (argv[i] != NULL) {
       new->argv[i] = strdup(argv[i]);
     } else {
-      new->argv[i] = NULL; //sets the last element to NULL
+      new->argv[i] = NULL; // sets the last element to NULL
       break;
     }
   }
 
-
-  strcpy(new->name, new->argv[0]); //copies the argv[0] to name
-  snprintf(new->str_status, 5, "%s", init); //set str_status to INIT
+  strcpy(new->name, new->argv[0]);          // copies the argv[0] to name
+  snprintf(new->str_status, 5, "%s", init); // set str_status to INIT
   new->pid = -1;
   new->out_pipe[0] = -1;
   new->out_pipe[1] = -1;
   new->finished = 0;
   new->status = -1;
   new->output = NULL;
-  new-> output_size = -1;
+  new->output_size = -1;
   return new;
 }
 // Allocates a new cmd_t with the given argv[] array. Makes string
@@ -37,9 +37,9 @@ cmd_t *cmd_new(char *argv[]) {
 // str_status to be "INIT" using snprintf(). Initializes the remaining
 // fields to obvious default values such as -1s, and NULLs.
 
-void cmd_free(cmd_t *cmd){
-  for(int i=0; i < ARG_MAX+1;i++){ //free each string in argv
-    if (cmd->argv[i]!=NULL){
+void cmd_free(cmd_t *cmd) {
+  for (int i = 0; i < ARG_MAX + 1; i++) { // free each string in argv
+    if (cmd->argv[i] != NULL) {
       free(cmd->argv[i]);
     } else {
       break;
@@ -48,28 +48,28 @@ void cmd_free(cmd_t *cmd){
 
   if (cmd->output != NULL)
     free(cmd->output);
-  
+
   free(cmd);
 }
 // Deallocates a cmd structure. Deallocates the strings in the argv[]
 // array. Also deallocats the output buffer if it is not
 // NULL. Finally, deallocates cmd itself.
 
-void cmd_start(cmd_t *cmd){
-  //first, create a pipe 
+void cmd_start(cmd_t *cmd) {
+  // first, create a pipe
   pipe(cmd->out_pipe);
-  snprintf(cmd->str_status, 4, "%s", "RUN"); //copy RUN to str_status
+  snprintf(cmd->str_status, 4, "%s", "RUN"); // copy RUN to str_status
   cmd->pid = fork();
-  if (cmd->pid == 0){ //child process
-    dup2(STDOUT_FILENO, cmd->out_pipe[PWRITE]); //alter output from stdout to pipe
-    close(cmd->out_pipe[PREAD]); //close the reading end
+  if (cmd->pid == 0) { // child process
+    dup2(STDOUT_FILENO,
+         cmd->out_pipe[PWRITE]); // alter output from stdout to pipe
+    close(cmd->out_pipe[PREAD]); // close the reading end
     execvp(cmd->name, cmd->argv);
 
-  } else { //parent process
-    close(cmd->out_pipe[PWRITE]); //close the writing end
-    //ensures that the pid field is set to the child PID?
+  } else {                        // parent process
+    close(cmd->out_pipe[PWRITE]); // close the writing end
+    // ensures that the pid field is set to the child PID?
   }
-
 }
 
 // Forks a process and starts executes command in cmd in the process.
@@ -81,19 +81,19 @@ void cmd_start(cmd_t *cmd){
 // descriptors for the pipe are closed (write in the parent, read in
 // the child).
 
-void cmd_update_state(cmd_t *cmd, int block){
-  if (cmd->finished) //if the finished is 1, does nothing
+void cmd_update_state(cmd_t *cmd, int block) {
+  if (cmd->finished) // if the finished is 1, does nothing
     return;
 
-  if(block) { //normal waitpid call
+  if (block) { // normal waitpid call
     waitpid(cmd->pid, &cmd->status, NOBLOCK);
-  } else { //non-blocking
+  } else { // non-blocking
     waitpid(cmd->pid, &cmd->status, DOBLOCK);
-    if (WIFEXITED(cmd->status)){
+    if (WIFEXITED(cmd->status)) {
       cmd->finished = 1;
       cmd->status = WEXITSTATUS(cmd->status);
-      snprintf(cmd->str_status, 5, "@!!! %s[#%d]: EXIT[%d]\n", 
-          cmd->name, cmd->pid, cmd->status); //set str_status to INIT
+      printf("@!!! %s[#%d]: EXIT[%d]\n", cmd->name, cmd->pid,
+             cmd->status); // set str_status to INIT
     }
   }
   cmd_fetch_output(cmd);
@@ -116,8 +116,24 @@ void cmd_update_state(cmd_t *cmd, int block){
 // which includes the command name, PID, and exit status.
 
 char *read_all(int fd, int *nread){
-  //todo, add this func
-};
+    int buf_size = BUFSIZE; //beginning buffer size
+    char *buffer = (char*)malloc(buf_size);
+    int curr_bytes = 0; 
+    int read_bytes;
+    while(1){
+      if (curr_bytes + BUF_READ_SIZE > buf_size -1){ //resize array
+        buf_size *=2;
+        buffer = (char*)realloc(buffer, buf_size);
+      } 
+      read_bytes = read(fd, buffer, BUF_READ_SIZE );
+      curr_bytes+=read_bytes;
+      if(read_bytes < BUF_READ_SIZE) //if at end, break
+        break;
+    }
+    buffer[curr_bytes] = '\0'; //set to null-terminated
+    *nread = curr_bytes;
+    return buffer;
+}
 // Reads all input from the open file descriptor fd. Stores the
 // results in a dynamically allocated buffer which may need to grow as
 // more data is read.  Uses an efficient growth scheme such as
@@ -128,33 +144,33 @@ char *read_all(int fd, int *nread){
 // string is null-terminated. Does not call close() on the fd as this
 // is done elsewhere.
 
-void cmd_fetch_output(cmd_t *cmd){
-  if (!cmd->finished){ //if not finished 
+void cmd_fetch_output(cmd_t *cmd) {
+  if (!cmd->finished) { // if not finished
     printf("%s[#%d] not finished yet\n", cmd->name, cmd->pid);
   }
   cmd->output = read_all(cmd->out_pipe[PREAD], &cmd->output_size);
   close(cmd->out_pipe[PREAD]);
 }
 // If cmd->finished is zero, prints an error message with the format
-// 
+//
 // ls[#12341] not finished yet
-// 
+//
 // Otherwise retrieves output from the cmd->out_pipe and fills
 // cmd->output setting cmd->output_size to number of bytes in
 // output. Makes use of read_all() to efficiently capture
 // output. Closes the pipe associated with the command after reading
 // all input.
 
-void cmd_print_output(cmd_t *cmd){
-  if(cmd->output == NULL){
-    printf("%s[#%d] : output not ready\n",cmd->name, cmd->pid);
+void cmd_print_output(cmd_t *cmd) {
+  if (cmd->output == NULL) {
+    printf("%s[#%d] : output not ready\n", cmd->name, cmd->pid);
   }
   write(STDOUT_FILENO, cmd->output, cmd->output_size);
 }
 
 // Prints the output of the cmd contained in the output field if it is
 // non-null. Prints the error message
-// 
+//
 // ls[#17251] : output not ready
 //
 // if output is NULL. The message includes the command name and PID.
