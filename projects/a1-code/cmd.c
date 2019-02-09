@@ -115,7 +115,8 @@ void cmd_update_state(cmd_t *cmd, int block){
 //
 // which includes the command name, PID, and exit status.
 
-char *read_all(int fd, int *nread);
+char *read_all(int fd, int *nread){
+};
 // Reads all input from the open file descriptor fd. Stores the
 // results in a dynamically allocated buffer which may need to grow as
 // more data is read.  Uses an efficient growth scheme such as
@@ -126,7 +127,13 @@ char *read_all(int fd, int *nread);
 // string is null-terminated. Does not call close() on the fd as this
 // is done elsewhere.
 
-void cmd_fetch_output(cmd_t *cmd);
+void cmd_fetch_output(cmd_t *cmd){
+  if (!cmd->finished){ //if not finished 
+    printf("%s[#%d] not finished yet\n", cmd->name, cmd->pid);
+  }
+  cmd->output = read_all(cmd->out_pipe[PREAD], &cmd->output_size);
+  close(cmd->out_pipe[PREAD]);
+}
 // If cmd->finished is zero, prints an error message with the format
 // 
 // ls[#12341] not finished yet
@@ -137,7 +144,13 @@ void cmd_fetch_output(cmd_t *cmd);
 // output. Closes the pipe associated with the command after reading
 // all input.
 
-void cmd_print_output(cmd_t *cmd);
+void cmd_print_output(cmd_t *cmd){
+  if(cmd->output == NULL){
+    printf("%s[#%d] : output not ready\n",cmd->name, cmd->pid);
+  }
+  write(STDOUT_FILENO, cmd->output, cmd->output_size);
+}
+
 // Prints the output of the cmd contained in the output field if it is
 // non-null. Prints the error message
 // 
