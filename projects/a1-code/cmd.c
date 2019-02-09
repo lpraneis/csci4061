@@ -67,7 +67,6 @@ void cmd_start(cmd_t *cmd){
 
   } else { //parent process
     close(cmd->out_pipe[PWRITE]); //close the writing end
-
     //ensures that the pid field is set to the child PID?
   }
 
@@ -82,7 +81,23 @@ void cmd_start(cmd_t *cmd){
 // descriptors for the pipe are closed (write in the parent, read in
 // the child).
 
-void cmd_update_state(cmd_t *cmd, int block);
+void cmd_update_state(cmd_t *cmd, int block){
+  if (cmd->finished) //if the finished is 1, does nothing
+    return;
+
+  if(block) { //normal waitpid call
+    waitpid(cmd->pid, &cmd->status, NOBLOCK);
+  } else { //non-blocking
+    waitpid(cmd->pid, &cmd->status, DOBLOCK);
+    if (WIFEXITED(cmd->status)){
+      cmd->finished = 1;
+      cmd->status = WEXITSTATUS(cmd->status);
+      snprintf(cmd->str_status, 5, "@!!! %s[#%d]: EXIT[%d]\n", 
+          cmd->name, cmd->pid, cmd->status); //set str_status to INIT
+    }
+  }
+  cmd_fetch_output(cmd);
+}
 // If the finished flag is 1, does nothing. Otherwise, updates the
 // state of cmd.  Uses waitpid() and the pid field of command to wait
 // selectively for the given process. Passes block (one of DOBLOCK or
