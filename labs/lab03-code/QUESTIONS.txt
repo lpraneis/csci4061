@@ -1,0 +1,171 @@
+                           __________________
+
+                            LAB 03 QUESTIONS
+                           __________________
+
+
+- Name: (FILL THIS in)
+- NetID: (THE kauf0095 IN kauf0095@umn.edu)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1 `wait_fork.c'
+=======================
+
+  The C file `wait-loop.c'. It implements a primitive interactive loop
+  asking a user to type things while a child process runs in the
+  background. By default, the provided `sleep_print.c' program is used
+  which creates a delay before the program finishes. Make sure to
+  compile it then compile `wait-loop.c' and experiment with its
+  behavior.
+
+  Here is a brief demo.
+  ,----
+  | > gcc -o sleep_print sleep_print.c 
+  | > gcc wait-loop.c
+  | > a.out
+  | Type text then press enter to check on child:
+  | hello there
+  | Entered text: 'hello there'
+  | Waiting
+  | CHILD: Awake and Done 
+  | CHILD FINISHED: 
+  | 
+  | Type text then press enter to check on child:
+  | what?
+  | Entered text: 'what?'
+  | Waiting
+  | Child not finished: wait returned -1
+  | 
+  | Type text then press enter to check on child:
+  | stop
+  | Entered text: 'stop'
+  | Waiting
+  | Child not finished: wait returned -1
+  | 
+  | Type text then press enter to check on child:
+  |   Ctrl-c
+  | > 
+  `----
+
+
+A
+~
+
+  Alter the code so that when the child has completed execution, the
+  program breaks out of the loop and the program ends normally. Paste in
+  the code you used for this.
+
+
+B
+~
+
+  Adjust the code so that the exit status of the child process is
+  printed when it finishes. Make sure to use the macros
+  `WIFEXITED(status)' and `WEXITSTATUS(status)' to deal with the
+  `status' set by `waitpid()'.  Paste the code you added for your
+  answer.
+
+
+C
+~
+
+  Make changes so that if the user types in the string `quit', the
+  program exits immediately without waiting further for the
+  child. Example:
+  ,----
+  | > a.out
+  | Type text then press enter to check on child:
+  | quit
+  | Entered text: 'quit'
+  | Quitting
+  | Exiting wait_loop
+  | > CHILD: Awake and Done 
+  `----
+  Note that the child eventually prints output to the screen which is
+  fine.
+
+  You will need to check the user input using the `strncmp()'
+  function. Do some research on this function as it will prove generally
+  useful.
+
+  Paste the code you used below.
+
+
+D
+~
+
+  The current call to `waitpid()' blocks, pausing execution of the
+  parent process until the child finishes. Look up the option to pass to
+  `waitpid()' that will allow it to do a non-blocking wait which returns
+  immediately if the child is not finished. A sample behavior is below.
+  ,----
+  | > a.out
+  | Type text then press enter to check on child:
+  | stuff
+  | Entered text: 'stuff'
+  | Waiting
+  | Child not finished: wait returned 0
+  | 
+  | Type text then press enter to check on child:
+  | more stuff
+  | Entered text: 'more stuff'
+  | Waiting
+  | Child not finished: wait returned 0
+  | 
+  | Type text then press enter to check on child:
+  | CHILD: Awake and Done 
+  | Looks like you're finally up
+  | Entered text: 'Looks like you're finally up'
+  | Waiting
+  | CHILD FINISHED: Exit status 5
+  | Exiting wait_loop
+  | > 
+  `----
+
+  Paste your entire code for `wait_loop.c' below.
+
+
+PROBLEM 2 `parent_listen.c'
+===========================
+
+  `parent_listen.c' demonstrates listening of a parent to output that is
+  write()'n to a pipe. Examine its contents carefully.
+
+
+A
+~
+
+  Compile and run the program in `parent_listen.c'. Show it's output
+  below.
+
+
+B
+~
+
+  Consider the call to `pipe()'. Do some research on Unix pipes to
+  figure out what a pipe does and explain in a few sentences.
+
+
+C
+~
+
+  Observe the calls to `read()' and `write()'. Their meaning should be
+  self-evident (read and write data) but the parameters to these
+  functions are interesting. Do some reading and explain the 3
+  parameters to each of them. Also explain their return value.
+
+
+D
+~
+
+  If you run the program a number of times, you may see output in
+  different orders: the child may report writing data before the parent
+  has read it.  Adjust the position of the wait() call to guarantee that
+  the order is always
+  - Child wrote
+  - Parent read
+  - Child said
+  Paste your code below.
