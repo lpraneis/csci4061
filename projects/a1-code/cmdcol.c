@@ -60,6 +60,5 @@ void cmdcol_freeall(cmdcol_t *col) {
   for (int i = 0; i < col->size; i++) {
     cmd_free(col->cmd[i]);
   }
-  free(col);
 };
 // Call cmd_free() on all of the constituent cmd_t's.
