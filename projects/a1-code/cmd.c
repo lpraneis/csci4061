@@ -117,37 +117,21 @@ void cmd_update_state(cmd_t *cmd, int block) {
 //
 // which includes the command name, PID, and exit status.
 
-// TODO: Remove lower from testing
-void print_buff(char *buffer) {
-  printf("Buffer is: \n");
-  fputs(buffer, stdout);
-  printf("\n");
-};
-
 char *read_all(int fd, int *nread) {
-  int buf_size = BUFSIZE; // beginning buffer size
-  char *buffer = (char *)malloc(buf_size);
-  int curr_bytes = 0;
-  int read_bytes = 0;
-
-  /* while ((read_bytes = read(fd, buffer, BUF_READ_SIZE)) > 0) { */
-  /*   if (curr_bytes + BUF_READ_SIZE >= buf_size - 1) { // resize array */
-  /*     buf_size = buf_size * 2; */
-  /*     buffer = (char *)realloc(buffer, buf_size); */
-  /*   } */
-
-  /*   /1* printf("Read %d bytes\n", read_bytes); *1/ */
-  /*   /1* print_buff(buffer); *1/ */
-  /*   curr_bytes = curr_bytes + read_bytes; */
-  /* } */
-
-  while ((read_bytes = read(fd, buffer, buf_size)) > 0) {
-    if (read_bytes <= buf_size + 1){
-      buf_size = buf_size * 2;
-      buffer = (char *)realloc(buffer, buf_size);
+    int buf_size = BUFSIZE; //beginning buffer size
+    char *buffer = (char*)malloc(buf_size);
+    int curr_bytes = 0; 
+    int read_bytes;
+    while(1){
+      if (curr_bytes + BUF_READ_SIZE > buf_size -1){ //resize array
+        buf_size *=2;
+        buffer = (char*)realloc(buffer, buf_size);
+      } 
+      read_bytes = read(fd, buffer+curr_bytes, BUF_READ_SIZE );
+      curr_bytes+=read_bytes;
+      if(read_bytes < BUF_READ_SIZE) //if at end, break
+        break;
     }
-    curr_bytes += read_bytes;
-  }
 
   buffer[curr_bytes] = '\0'; // set to null-terminated
   *nread = curr_bytes;
