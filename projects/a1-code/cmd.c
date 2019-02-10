@@ -1,5 +1,7 @@
 #include "commando.h"
-#define BUF_READ_SIZE  128 //this is for the amount that is read at a time by the read_all function
+#define BUF_READ_SIZE 128
+// this is for the amount that is read at a time by the read_all function
+
 // cmd.c: functions related the cmd_t struct abstracting a
 // command. Most functions maninpulate cmd_t structs.
 
@@ -30,7 +32,6 @@ cmd_t *cmd_new(char *argv[]) {
   return new;
 }
 
-
 // Allocates a new cmd_t with the given argv[] array. Makes string
 // copies of each of the strings contained within argv[] using
 // strdup() as they likely come from a source that will be
@@ -59,18 +60,18 @@ void cmd_free(cmd_t *cmd) {
 
 void cmd_start(cmd_t *cmd) {
   // first, create a pipe
-  pipe(cmd->out_pipe);
   snprintf(cmd->str_status, 4, "%s", "RUN"); // copy RUN to str_status
-  cmd->pid = fork();
-  if (cmd->pid == 0) { // child process
-    dup2(STDOUT_FILENO,
-         cmd->out_pipe[PWRITE]); // alter output from stdout to pipe
+  pipe(cmd->out_pipe);
+  pid_t child_pid = fork();
+  if (child_pid == 0) {          // child process
     close(cmd->out_pipe[PREAD]); // close the reading end
+    dup2(cmd->out_pipe[PWRITE], STDOUT_FILENO);
+    // alter output from stdout to pipe
     execvp(cmd->name, cmd->argv);
 
   } else {                        // parent process
     close(cmd->out_pipe[PWRITE]); // close the writing end
-    // ensures that the pid field is set to the child PID?
+    cmd->pid = child_pid;
   }
 }
 
@@ -84,22 +85,21 @@ void cmd_start(cmd_t *cmd) {
 // the child).
 
 void cmd_update_state(cmd_t *cmd, int block) {
-  if (cmd->finished) // if the finished is 1, does nothing
+  if (cmd->finished == 1) // if the finished is 1, does nothing
     return;
-
-  if (block) { // normal waitpid call
-    waitpid(cmd->pid, &cmd->status, NOBLOCK);
-  } else { // non-blocking
-    waitpid(cmd->pid, &cmd->status, DOBLOCK);
-    if (WIFEXITED(cmd->status)) {
-      cmd->finished = 1;
-      cmd->status = WEXITSTATUS(cmd->status);
-      printf("@!!! %s[#%d]: EXIT[%d]\n", cmd->name, cmd->pid,
-             cmd->status); // set str_status to INIT
+  else {
+    waitpid(cmd->pid, &cmd->status, block);
+      if (WIFEXITED(cmd->status)) {
+        cmd->finished = 1;
+        cmd->status = WEXITSTATUS(cmd->status);
+        snprintf(cmd->str_status, 8, "EXIT(%d)",cmd->status  ); // set str_status to INIT
+        printf("@!!! %s[#%d]: EXIT(%d)\n", cmd->name, cmd->pid,
+               cmd->status); 
+        cmd_fetch_output(cmd);
+      }
     }
-  }
-  cmd_fetch_output(cmd);
 }
+
 // If the finished flag is 1, does nothing. Otherwise, updates the
 // state of cmd.  Uses waitpid() and the pid field of command to wait
 // selectively for the given process. Passes block (one of DOBLOCK or
@@ -117,25 +117,43 @@ void cmd_update_state(cmd_t *cmd, int block) {
 //
 // which includes the command name, PID, and exit status.
 
-char *read_all(int fd, int *nread){
-    int buf_size = BUFSIZE; //beginning buffer size
-    char *buffer = (char*)malloc(buf_size);
-    int curr_bytes = 0; 
-    int read_bytes;
-    while(1){
-      if (curr_bytes + BUF_READ_SIZE > buf_size -1){ //resize array
-        buf_size *=2;
-        buffer = (char*)realloc(buffer, buf_size);
-      } 
-      read_bytes = read(fd, buffer, BUF_READ_SIZE );
-      curr_bytes+=read_bytes;
-      if(read_bytes < BUF_READ_SIZE) //if at end, break
-        break;
+// TODO: Remove lower from testing
+void print_buff(char *buffer) {
+  printf("Buffer is: \n");
+  fputs(buffer, stdout);
+  printf("\n");
+};
+
+char *read_all(int fd, int *nread) {
+  int buf_size = BUFSIZE; // beginning buffer size
+  char *buffer = (char *)malloc(buf_size);
+  int curr_bytes = 0;
+  int read_bytes = 0;
+
+  /* while ((read_bytes = read(fd, buffer, BUF_READ_SIZE)) > 0) { */
+  /*   if (curr_bytes + BUF_READ_SIZE >= buf_size - 1) { // resize array */
+  /*     buf_size = buf_size * 2; */
+  /*     buffer = (char *)realloc(buffer, buf_size); */
+  /*   } */
+
+  /*   /1* printf("Read %d bytes\n", read_bytes); *1/ */
+  /*   /1* print_buff(buffer); *1/ */
+  /*   curr_bytes = curr_bytes + read_bytes; */
+  /* } */
+
+  while ((read_bytes = read(fd, buffer, buf_size)) > 0) {
+    if (read_bytes <= buf_size + 1){
+      buf_size = buf_size * 2;
+      buffer = (char *)realloc(buffer, buf_size);
     }
-    buffer[curr_bytes] = '\0'; //set to null-terminated
-    *nread = curr_bytes;
-    return buffer;
+    curr_bytes += read_bytes;
+  }
+
+  buffer[curr_bytes] = '\0'; // set to null-terminated
+  *nread = curr_bytes;
+  return buffer;
 }
+
 // Reads all input from the open file descriptor fd. Stores the
 // results in a dynamically allocated buffer which may need to grow as
 // more data is read.  Uses an efficient growth scheme such as
@@ -147,7 +165,7 @@ char *read_all(int fd, int *nread){
 // is done elsewhere.
 
 void cmd_fetch_output(cmd_t *cmd) {
-  if (!cmd->finished) { // if not finished
+  if (cmd->finished == 0) { // if not finished
     printf("%s[#%d] not finished yet\n", cmd->name, cmd->pid);
   }
   cmd->output = read_all(cmd->out_pipe[PREAD], &cmd->output_size);

@@ -2,18 +2,18 @@
 
 void print_help();
 
-int num_tokens;
 
 int main(int argc, char **argv) {
   
 
   //TODO: turn off output buffering
-  /* setvbuf(stdout, NULL, _IONBF, 0); */
+  setvbuf(stdout, NULL, _IONBF, 0);
 
 
   //allocate basic structures, variables
   char user_raw_input[MAX_LINE];
   char **user_input = malloc(ARG_MAX * NAME_MAX);
+  int num_tokens;
   static int echoing;
   cmdcol_t *cmdcol = (cmdcol_t *)malloc(MAX_CMDS * sizeof(cmd_t));
   cmdcol->size = 0; // to prevent segfaults on output of no commands
@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
     } else if (strcmp("pause", user_input[0]) == 0) {
       // pauing and then update_state
       pause_for(atoi(user_input[1]), atoi(user_input[2]));
-
       cmdcol_update_state(cmdcol, NOBLOCK);
 
     } else if (strcmp("output-for", user_input[0]) == 0) {
@@ -72,22 +71,34 @@ int main(int argc, char **argv) {
       }
 
     } else if (strcmp("output-all", user_input[0]) == 0) {
-      break;
+        for (int i = 0; i < cmdcol->size; i++){
+
+          printf("@<<< Output for %s[#%d] (%d bytes):\n", cmdcol->cmd[i]->name,
+                 cmdcol->cmd[i]->pid, cmdcol->cmd[i]->output_size);
+          printf("%s\n", line);
+          cmd_print_output(cmdcol->cmd[i]);
+          printf("%s\n", line);
+        }
     } else if (strcmp("wait-for", user_input[0]) == 0) {
-      break;
+
+      int jobid = atoi(user_input[1]);
+      if (jobid >= cmdcol->size) {
+        printf("ERROR: NO JOB %d\n", jobid);
+      } else {
+        cmd_update_state(cmdcol->cmd[jobid], DOBLOCK);
+      }
+
     } else if (strcmp("wait-all", user_input[0]) == 0) {
-      break;
-    } else if (strcmp("command", user_input[0]) == 0) {
-      break;
+        for (int i = 0; i < cmdcol->size; i++){
+          cmd_update_state(cmdcol->cmd[i], DOBLOCK);
+        }
+
     } else {
       // user command
       cmd_t *new = cmd_new(user_input);
       cmd_start(new);
       cmdcol_add(cmdcol, new);
     }
-
-
-
     //update state of all
     cmdcol_update_state(cmdcol, NOBLOCK);
   }
