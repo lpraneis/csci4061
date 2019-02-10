@@ -2,15 +2,12 @@
 
 void print_help();
 
-
 int main(int argc, char **argv) {
-  
 
-  //TODO: turn off output buffering
+  // TODO: turn off output buffering
   setvbuf(stdout, NULL, _IONBF, 0);
 
-
-  //allocate basic structures, variables
+  // allocate basic structures, variables
   char user_raw_input[MAX_LINE];
   char **user_input = malloc(ARG_MAX * NAME_MAX);
   int num_tokens;
@@ -29,9 +26,12 @@ int main(int argc, char **argv) {
 
   while (1) {
     printf("@> ");
-    fgets(user_raw_input, MAX_LINE, stdin);
+    if(!fgets(user_raw_input, MAX_LINE, stdin)){
+      //EOF
+      printf("\nEnd of input\n");
+      break;
+    }
     parse_into_tokens(user_raw_input, user_input, &num_tokens);
-
 
     if (echoing) { // prints the command sent to commando if not stdin
       for (int i = 0; i < num_tokens; i++) {
@@ -71,14 +71,13 @@ int main(int argc, char **argv) {
       }
 
     } else if (strcmp("output-all", user_input[0]) == 0) {
-        for (int i = 0; i < cmdcol->size; i++){
-
-          printf("@<<< Output for %s[#%d] (%d bytes):\n", cmdcol->cmd[i]->name,
-                 cmdcol->cmd[i]->pid, cmdcol->cmd[i]->output_size);
-          printf("%s\n", line);
-          cmd_print_output(cmdcol->cmd[i]);
-          printf("%s\n", line);
-        }
+      for (int i = 0; i < cmdcol->size; i++) {
+        printf("@<<< Output for %s[#%d] (%d bytes):\n", cmdcol->cmd[i]->name,
+               cmdcol->cmd[i]->pid, cmdcol->cmd[i]->output_size);
+        printf("%s\n", line);
+        cmd_print_output(cmdcol->cmd[i]);
+        printf("%s\n", line);
+      }
     } else if (strcmp("wait-for", user_input[0]) == 0) {
 
       int jobid = atoi(user_input[1]);
@@ -89,9 +88,9 @@ int main(int argc, char **argv) {
       }
 
     } else if (strcmp("wait-all", user_input[0]) == 0) {
-        for (int i = 0; i < cmdcol->size; i++){
-          cmd_update_state(cmdcol->cmd[i], DOBLOCK);
-        }
+      for (int i = 0; i < cmdcol->size; i++) {
+        cmd_update_state(cmdcol->cmd[i], DOBLOCK);
+      }
 
     } else {
       // user command
@@ -99,13 +98,14 @@ int main(int argc, char **argv) {
       cmd_start(new);
       cmdcol_add(cmdcol, new);
     }
-    //update state of all
+    // update state of all
     cmdcol_update_state(cmdcol, NOBLOCK);
   }
 
   // free all dynamic memory
   free(user_input);
   cmdcol_freeall(cmdcol);
+  free(cmdcol);
   return 0;
 };
 
