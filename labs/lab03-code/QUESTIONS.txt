@@ -4,8 +4,8 @@
                            __________________
 
 
-- Name: (FILL THIS in)
-- NetID: (THE kauf0095 IN kauf0095@umn.edu)
+- Name: (Logan Praneis)
+- NetID: (Logan Praneis)
 
 Answer the questions below according to the lab specification. Write
 your answers directly in this text file and submit it to complete Lab01.
@@ -14,7 +14,7 @@ your answers directly in this text file and submit it to complete Lab01.
 PROBLEM 1 `wait_fork.c'
 =======================
 
-  The C file `wait-loop.c'. It implements a primitive interactive loop
+  The C file `wait_loop.c'. It implements a primitive interactive loop
   asking a user to type things while a child process runs in the
   background. By default, the provided `sleep_print.c' program is used
   which creates a delay before the program finishes. Make sure to
@@ -58,6 +58,11 @@ A
   program breaks out of the loop and the program ends normally. Paste in
   the code you used for this.
 
+    if(pid == child_pid){
+      printf("CHILD FINISHED: ");
+      printf("\n");
+      break; //added this break
+    }
 
 B
 ~
@@ -68,6 +73,13 @@ B
   `status' set by `waitpid()'.  Paste the code you added for your
   answer.
 
+    if(pid == child_pid){
+      printf("CHILD FINISHED: ");
+      if (WIFEXITED(status)){
+        int retval = WEXITSTATUS(status);
+        printf("%d\n", retval);
+      }
+      break;
 
 C
 ~
@@ -92,6 +104,11 @@ C
   useful.
 
   Paste the code you used below.
+
+
+    if (!strncmp(input, "quit", 4)){
+      break;
+    }
 
 
 D
@@ -128,6 +145,60 @@ D
   Paste your entire code for `wait_loop.c' below.
 
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+
+int main(void) {
+  // Make sure to compile sleep_print first:
+  // gcc -o sleep_print sleep_print.c
+  char *child_argv[] = {"./sleep_print","5","CHILD: Awake and Done",NULL};
+  pid_t child_pid = fork();
+  if(child_pid == 0){
+    execvp(child_argv[0],child_argv);
+    perror("errno indicates");
+    printf("Couldn't run '%s': is it compiled??\n",child_argv[0]);
+    exit(1);
+  }
+
+  while(1){
+    printf("Type text then press enter to check on child:\n");
+    char buffer[1024];
+    char *input = fgets(buffer,1024,stdin);
+    input[strlen(input)-1] = '\0'; // Eliminate newline in buffer
+    printf("Entered text: '%s'\n",input);
+
+    if (!strncmp(input, "quit", 4)){
+      break;
+    }
+
+    printf("Waiting\n");
+
+    int status;
+    pid_t pid = waitpid(child_pid, &status, WNOHANG);
+
+
+    if(pid == child_pid){
+      printf("CHILD FINISHED: ");
+      if (WIFEXITED(status)){
+        int retval = WEXITSTATUS(status);
+        printf("%d\n", retval);
+      }
+      break;
+    }
+    else{
+      printf("Child not finished: wait returned %d\n",pid);
+    }
+    printf("\n");
+  }
+  printf("Exiting wait-loop\n");
+  return 0;
+}
+
+
+
 PROBLEM 2 `parent_listen.c'
 ===========================
 
@@ -141,12 +212,22 @@ A
   Compile and run the program in `parent_listen.c'. Show it's output
   below.
 
+Parent creating child process
+Child wrote 17 bytes
+Parent read 17 bytes
+Child said: 'Send $$$ please!'
 
 B
 ~
 
   Consider the call to `pipe()'. Do some research on Unix pipes to
   figure out what a pipe does and explain in a few sentences.
+
+  pipe allows parents to talk to children by using a data structure that is just
+  an array with two file descriptors. The file descriptors are just integers 
+  via unix convention and allow one of the items of the array to  be a 'read' end 
+  and the other to be a 'write' end. All pipes will have these two elements, but
+  a process can only utilize one.
 
 
 C
@@ -157,6 +238,17 @@ C
   functions are interesting. Do some reading and explain the 3
   parameters to each of them. Also explain their return value.
 
+ssize_t write(int fd, const void *buf, size_t count);
+  write() simply writes data to a specific file descriptor (generally a pipe but could be stdout) 
+  and from a buffer represented as a pointer to a char array. It just writes count number 
+  of bytes from the buf to the fd. The return of write is an integer of how many bytes it 
+  actually wrote or -1 for an error.
+
+
+ssize_t read(int fd, void *buf, size_t count);
+  read() on the other hand, reads from a fd to a buffer. It similarly takes the argments of 
+  a count of bytes to read. It retrns either a -1 for an error or a count of how many
+  bytes it actually read, 0 being the EOF.
 
 D
 ~
@@ -169,3 +261,8 @@ D
   - Parent read
   - Child said
   Paste your code below.
+
+  wait(NULL);
+  printf("Parent read %d bytes\n",bytes_read);
+  printf("Child said: '%s'\n",buffer);
+

@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
   close(par_child_pipe[PWRITE]);
   close(par_child_pipe[PREAD]);
 
+  wait(NULL);
   printf("Parent read %d bytes\n",bytes_read);
   printf("Child said: '%s'\n",buffer);
-  wait(NULL);
 
   return 0;
 }

@@ -23,12 +23,23 @@ int main(void) {
     input[strlen(input)-1] = '\0'; // Eliminate newline in buffer
     printf("Entered text: '%s'\n",input);
 
+    if (!strncmp(input, "quit", 4)){
+      break;
+    }
+
     printf("Waiting\n");
+
     int status;
-    pid_t pid = waitpid(child_pid, &status, 0);
+    pid_t pid = waitpid(child_pid, &status, WNOHANG);
+
+
     if(pid == child_pid){
       printf("CHILD FINISHED: ");
-      printf("\n");
+      if (WIFEXITED(status)){
+        int retval = WEXITSTATUS(status);
+        printf("%d\n", retval);
+      }
+      break;
     }
     else{
       printf("Child not finished: wait returned %d\n",pid);
