@@ -169,8 +169,9 @@ void cmd_fetch_output(cmd_t *cmd) {
 void cmd_print_output(cmd_t *cmd) {
   if (cmd->output == NULL) {
     printf("%s[#%d] : output not ready\n", cmd->name, cmd->pid);
-  }
+  } else{
   write(STDOUT_FILENO, cmd->output, cmd->output_size);
+  }
 }
 
 // Prints the output of the cmd contained in the output field if it is
