@@ -11,7 +11,7 @@ Answer the questions below according to the lab specification. Write
 your answers directly in this text file and submit it to complete Lab01.
 
 
-PROBLEM 1 `wait_fork.c'
+PROBLEM 1 `wait_loop.c'
 =======================
 
   The C file `wait_loop.c'. It implements a primitive interactive loop
