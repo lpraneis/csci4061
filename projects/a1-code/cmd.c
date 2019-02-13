@@ -61,8 +61,16 @@ void cmd_free(cmd_t *cmd) {
 void cmd_start(cmd_t *cmd) {
   // first, create a pipe
   snprintf(cmd->str_status, 4, "%s", "RUN"); // copy RUN to str_status
-  pipe(cmd->out_pipe);
+  if (pipe(cmd->out_pipe) < 0){//checks to make sure system call doesn't return -1
+    printf("Error: %s\n", strerror(errno));
+    exit(1);
+  }
+
   pid_t child_pid = fork();
+  if (child_pid < 0){ //checks to make sure system call doesn't return -1
+    printf("Error: %s\n", strerror(errno));
+    exit(1);
+  }
   if (child_pid == 0) {          // child process
     close(cmd->out_pipe[PREAD]); // close the reading end
     dup2(cmd->out_pipe[PWRITE], STDOUT_FILENO);

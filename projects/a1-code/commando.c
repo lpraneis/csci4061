@@ -4,7 +4,6 @@ void print_help();
 
 int main(int argc, char **argv) {
 
-  // TODO: turn off output buffering
   setvbuf(stdout, NULL, _IONBF, 0);
 
   // allocate basic structures, variables
@@ -26,8 +25,8 @@ int main(int argc, char **argv) {
 
   while (1) {
     printf("@> ");
-    if(!fgets(user_raw_input, MAX_LINE, stdin)){
-      //EOF
+    if (!fgets(user_raw_input, MAX_LINE, stdin)) {
+      // EOF
       printf("\nEnd of input\n");
       break;
     }
@@ -109,7 +108,7 @@ int main(int argc, char **argv) {
   return 0;
 };
 
-void print_help() {
+void print_help() { // helper function for printing help
   printf("%-18s\n", "COMMANDO COMMANDS");
   printf("%-18s : %s\n", "help", "show this message");
   printf("%-18s : %s\n", "exit", "exit the program");
