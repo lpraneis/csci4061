@@ -1,5 +1,6 @@
 #include "commando.h"
 #define BUF_READ_SIZE 128
+
 // this is for the amount that is read at a time by the read_all function
 
 // cmd.c: functions related the cmd_t struct abstracting a
