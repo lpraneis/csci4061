@@ -1,0 +1,156 @@
+                           __________________
+
+                            LAB 05 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1 `dirops.c'
+====================
+
+A
+~
+
+  Examine the source code of `dirops.c' closely. It makes use of a
+  variety of system calls to produce a semi-interesting effect.  Compile
+  and run it several times. Describe the overall intent of the program
+  based on its output and the code you understand.
+
+.                              :   4096 bytes
+3K.txt                         :  13893 bytes
+8K.txt.copy                    :  39936 bytes
+dirops.c                       :   1284 bytes
+QUESTIONS.txt                  :   1905 bytes
+a.out                          :  12968 bytes
+8K.txt.copy.copy               :  39936 bytes
+..                             :   4096 bytes
+8K.txt                         :  39379 bytes
+4K.txt                         :  19129 bytes
+Largest file: 8K.txt.copy with 39936 bytes
+Copying 8K.txt.copy to 8K.txt.copy.copy
+Copy complete
+
+It seems that it looks through the directory, setting the current file to a 
+dirent struct. Then, it finds the size of the file using the stat() system call.
+It the size is larger than the max size, it sets that file name to be the 'max_name'.
+It then copies this file to another file called "*".copy.txt where "*" is the name of the
+last file and closes all currently opened files.
+
+
+B
+~
+
+  What set of system calls is used by the program to determine all the
+  files in the current directory? Describe briefly how these calls work
+  together.
+
+opendir() - this function opens a directory stream (DIR*) and returns a pointer 
+to that stream, the variable *dir.
+
+readdir() - This function returns a pointer to the dirent struct (shown below). 
+This struct represents the next entry in a directory stream. 
+
+           struct dirent {
+               ino_t          d_ino;       /* Inode number */
+               off_t          d_off;       
+               unsigned short d_reclen;    /* Length of this record */
+               unsigned char  d_type;      /* Type of file; not supported
+                                              by all filesystem types */
+               char           d_name[256]; /* Null-terminated filename */
+           };
+
+
+stat() - This function sets info about the file in question, taking a pointer to a
+stat struct and a pathname (char*). This sets the struct in question (sb) to have all the
+information as shown below:
+           struct stat {
+               dev_t     st_dev;         /* ID of device containing file */
+               ino_t     st_ino;         /* Inode number */
+               mode_t    st_mode;        /* File type and mode */
+               nlink_t   st_nlink;       /* Number of hard links */
+               uid_t     st_uid;         /* User ID of owner */
+               gid_t     st_gid;         /* Group ID of owner */
+               dev_t     st_rdev;        /* Device ID (if special file) */
+               off_t     st_size;        /* Total size, in bytes */
+               blksize_t st_blksize;     /* Block size for filesystem I/O */
+               blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+
+               struct timespec st_atim;  /* Time of last access */
+               struct timespec st_mtim;  /* Time of last modification */
+               struct timespec st_ctim;  /* Time of last status change */
+
+           };
+
+closedir() - closedir() simply closes a directory stream associated with the directory
+in question
+
+
+C
+~
+
+  Identify the system call that `dirops.c' uses to find the sizes of
+  files. Describe briefly how this call works.
+
+dirops.c uses the stat() function as described above. It takes in the address of a
+stat struct and fills the struct with information about a file. We then 
+access the data using dot (.) notation as it is allocated on the stack. We access 
+sb.st_size to get the total size in bytes
+
+
+D
+~
+
+  The following line sets up the read/write permissions that the copied
+  file will have.
+  ,----
+  | mode_t perms = S_IRUSR | S_IWUSR;
+  `----
+  Modify this line so that the copied file is readable by the group as
+  well as the user.
+
+  /Optional challenge:/ Set the permissions to be identical to the
+  original file. `stat()' is one way to find out the permissions for the
+  original file.
+
+  modified: 
+  mode_t perms = S_IRUSR | S_IWUSR | S_IRGRP;
+
+  challenge modified:
+
+  (moved struct stat sb to line 12)
+
+  mode_t perms = 0777 & sb.st_mode;
+
+
+
+E
+~
+
+  `dirops.c' contains a subtle bug in the following bit of code towards
+  the end of the file.
+  ,----
+  |   while( (nbytes = read(infd, buf, BUFSIZE)) > 0){
+  |     write(outfd, buf, BUFSIZE);
+  |   }
+  `----
+  You should observe that every time program is run, it will identify a
+  copied file as the largest and make another copy due to this bug. It
+  may help to examine the ends of the copied files with the `tail
+  file.txt.copy' command which will show the last 10 lines.
+
+  Explain what is wrong with the loop and paste a fixed version below.
+
+
+What is wrong with the code is that even if read() returns less than BUFSIZE,
+the write() call always wrote BUFSIZE to the buffer. This caused part of the buffer 
+to be written twice.
+
+  while( (nbytes = read(infd, buf, BUFSIZE)) > 0){
+    write(outfd, buf, nbytes);
+  }
