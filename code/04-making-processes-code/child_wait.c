@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int main(int argc, char* argv){
+int main(int argc, char** argv){
 
   char *child_argv[] = {"ls","-l","-ah",NULL};          // argument array to child, must end with NULL 
   char *child_cmd = "ls";                               // actual command to run, must be on path
