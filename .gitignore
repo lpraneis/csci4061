@@ -6,3 +6,5 @@ projects/a1-code/Session.vim
  *.out
 
 testing/
+
+.ccls-cache/
