@@ -8,170 +8,247 @@
 - NetID: (prane001)
 
 Answer the questions below according to the lab specification. Write
-your answers directly in this text file and submit it to complete Lab01.
+your answers directly in this text file and submit it to complete the
+lab.
 
 
-PROBLEM 1 `birth_death.c'
-=========================
+PROBLEM 1: Binary File Format w/ Read
+=====================================
 
 A
 ~
 
-  Compile `circle_of_life.c' to the program `circle_of_life' and run
-  it. Examine the results and feel free to terminate execution
-  early. Examine the source code if desired though it is merely a
-  print/sleep loop.
-
-  Compile `birth_death.c' to the program `birth_death'. This program is
-  invoked with two arguments, another program name and a "lifetime"
-  which is an integer number of seconds. Run it like
+  Compile all programs in the lab code directory with the provided
+  `Makefile'.  Run the command
   ,----
-  | $> ./birth_death ./circle_of_life 4
+  | ./make_dept_directory cse_depts.dat
   `----
-  and show the output below.
+  to create the `cse_depts.dat' binary file. Examine the source code for
+  this program the header `department.h'. Explain the format of the
+  binary file `cse_depts.dat'.
+  - What system calls are used in `make_dept_directory.c' to create this
+    file?
 
-$> ./birth_death ./circle_of_life 4
-Nants ingonyama bagithi baba
-Sithi uhm ingonyama
-Nants ingonyama bagithi baba
-Sithi uhm ingonyama
-kill result: 0
-child process 10224 terminated with signal 2
+    The write() system calls are used to create this file
+
+  - How is the `sizeof()' operator used to simplify some of the
+    computations in `make_dept_directory.c'?
+
+    The sizeof() operator retuuns the size of the entire array since it is fixed.
+    This means we can write an entire array with the single write() call
+
+  - What data is in `cse_depts.dat' and how is it ordered?
+
+  There is binary data with the following ordering:
+
+  File header
+  'Table of contents' of sorts with the departments
+  Department 1 with all faculty with email
+  Department 2 with all faculty with email
+  Department 3 with all faculty with email
+  
 
 
 B
 ~
 
-  Examine the source code for `birth_death.c' and determine the system
-  call the parent program (`birth_death') uses to send signals to the
-  child program. Paste this line below and explain which signal is being
-  sent.
+  Run the `print_department_read' program which takes a binary data file
+  and a department code to print.  Show a few examples of running this
+  program with the valid command line arguments. Include in your demo
+  runs that
+  - Use the `cse_depts.dat' with known and unknown department codes
+  - Use a file other than `cse_depts.dat'
 
-    int result = kill(pid,SIGINT);           // send a interrupt signal to child
+[I] ➜ ./print_department_read cse_depts.dat CS
+Dept Name: CS Offset: 104
+Dept Name: EE Offset: 2152
+Dept Name: IT Offset: 3688
 
-    This line sends the SIGINT (signal 2) to the child process marked by the pid
-    variable. SIGINT is the singal interrupt.
+8 Contacts for CS department
+Arindam Banerjee <baner029@umn.edu>
+Daniel Boley <boley@umn.edu>
+Abhishek Chandra <chandra@umn.edu>
+David Hung-Chang Du <du@umn.edu>
+Maria Gini <gini@umn.edu>
+Stephen Guy <sjguy@umn.edu>
+Tian He <tianhe@umn.edu>
+Mats Heimdahl <heimdahl@umn.edu>
+
+4061/labs/lab06-code on  master [✘!?]
+[I] ➜ ./print_department_read cse_depts.dat EE
+Dept Name: CS Offset: 104
+Dept Name: EE Offset: 2152
+Dept Name: IT Offset: 3688
+
+6 Contacts for EE department
+Mehmet Akcakaya <akcakaya@umn.edu>
+Massoud Amin <amin@umn.edu>
+Raj Aravalli <aravalli@umn.edu>
+Kia Bazargan <kia@umn.edu>
+Itshak Bergel <ibergel@umn.edu>
+Stephen Campbell <scampbell@umn.edu>
+
+4061/labs/lab06-code on  master [✘!?]
+[I] ➜ ./print_department_read cse_depts.dat IT
+Dept Name: CS Offset: 104
+Dept Name: EE Offset: 2152
+Dept Name: IT Offset: 3688
+
+5 Contacts for IT department
+Joseph Axberg <jaxberg@umn.edu>
+Carl Follstad <follstad@umn.edu>
+Valarie Griep <griep003@umn.edu>
+Richard Howey <howe0156@umn.edu>
+Scott Kerlin <kerli012@umn.edu>
+
+[I] ➜ ./print_department_read cse_depts.dat CE
+Dept Name: CS Offset: 104
+Dept Name: EE Offset: 2152
+Dept Name: IT Offset: 3688
+Department code 'CE' not found
+
+
+[I] ➜ ./print_department_read department.h CS
+'department.h' does not appear to be a binary department directory file
+
 
 C
 ~
 
-  `birth_death.c' waits for a child to finish then outputs what signal
-  caused it to be terminated if that was the cause of death. Paste the
-  lines of code which determine if a child was terminated due to a
-  signal below and mention the macros used for this purpose.
+  Study the source code for `print_department_read' and describe how it
+  initially prints the table of offsets shown below.
+  ,----
+  | Dept Name: CS Offset: 104
+  | Dept Name: EE Offset: 2152
+  | Dept Name: IT Offset: 3688
+  `----
+  What specific sequence of calls leads to this information?
 
-  if(WIFSIGNALED(status)){                   // check if a signal ended the child
-    printf("child process %d terminated with signal %d\n",
-           pid,WTERMSIG(status));
-  }
+  The program first creates a file_header_t variable of name header and
+  uses the read() system call to populate this header.
+  Then it checks the header.itent array to find that the bytes ensure
+  the correct file format
 
-  These lines of code use the WIFISIGNALED macro to check when the child
-  process changes the status variable to mark that it ended. It then uses 
-  the WTERMSIG macro to get the kill signal from the child process.
+  It then uses the read() file to get the dept_offset_t struct from the file
+  and uses strcmp() to find the department that matches.
+
+  After the correct department is found, it uses the lseek() system call to jump to
+  that file offset and begin read() ing the data dnd using printf() to print them to
+  the screen.
+
 
 D
 ~
 
-  Compile the program `no_interruptions.c' and run it with
-  `birth_death'. Show your results below.
+  What system call is used to skip immediately to the location in the
+  file where desired contacts are located? What arguments does this
+  system call take? Consult the manual entry for this function to find
+  out how else it can be used.
 
-  Note that you may need to send signals to `no_interruptions' to
-  forcibly end it. The `pkill' command is useful for this as in
+  lseek() is used. It takes a fd, an offset to jump to, and a flag 'whence' to
+  control how the file offset is set. IN this case, it uses SEEK_SET to set the
+  file offset to the offset bytes
+       
+       off_t lseek(int fd, off_t offset, int whence);
+
+
+
+PROBLEM 2: mmap() and binary files
+==================================
+
+  An alternative to using standard I/O functions is "memory mapped"
+  files through the system call `mmap()'. The program
+  `print_department_mmap.c' provides the functionality as the previous
+  `print_department_read.c' but uses a different mechanism.
+
+
+(A)
+~~~
+
+  Early in `print_department_mmap.c' an `open()' call is used as in the
+  previous program but it is followed shortly by a call to `mmap()' in
+  the lines
   ,----
-  | pkill no_inter        # send TERM signal to proc name matching "no_inter"
-  | pkill -KILL no_inter  # send KILL signal to proc name matching "no_inter"
+  |   char *file_bytes =
+  |     mmap(NULL, size, PROT_READ, MAP_SHARED,
+  |          fd, 0);
+  `----
+  Look up reference documentation on `mmap()' and describe some of the
+  arguments to it including the `NULL' and `size' arguments. Also
+  describe its return value.
+
+  mmap() takes the arguments of an addr (this being NULL means that the kernel chooses at 
+  what address to make the mapping), a length, in this cake the size of the stat_buf,
+  a flag that describes the memory protecction of this mapping (in this case PROT_READ), 
+  and flag that describes the sharing of this memory with other processes (MAP_SHARED), 
+  a file descriptor (fd) that describes who the bytes are referred to by, and then an offset
+  into the fd that is mentioned. 
+
+
+(B)
+~~~
+
+  The initial setup of the program uses `mmap()' to assign a pointer to
+  variable `char *file_bytes'.  This pointer will refer directly to the
+  bytes of the binary file.
+
+  Examine the lines
+  ,----
+  |   ////////////////////////////////////////////////////////////////////////////////
+  |   // CHECK the file_header_t struct for integrity, size of department array
+  |   file_header_t *header = (file_header_t *) file_bytes; // binary header struct is first thing in the file
   `----
 
-[I] ➜ ./birth_death ./no_interruptions 5
-Ma-na na-na!
-Ma-na na-na!
-Ma-na na-na!
-Ma-na na-na!
+  Explain what is happening here: what value will the variable `header'
+  get and how is it used in subsequent lines.
 
-No SIGINT-erruptions allowed.
-Ma-na na-na!
-kill result: 0
-Ma-na na-na!
-Ma-na na-na!
-Ma-na na-na!
-Ma-na na-na!
-kill result: 0
-
-E
-~
-
-  Examine the `no_interruptions.c' code and describe how it is able to
-  avoid being killed when receiving the interrupt and TERM signals. Show
-  the lines of code used to accomplish this signal handling.
-
-It uses handle_SIG... (int signum) functions to expect a SIG and then
-uses the signal() system call  to handle these without killing the program.
+  Header will get the address of the file_bytes memory mapping, cast to a file_header_t 
+  pointer. This is a pointer to the beginning of the memory mapping.
 
 
-PROBLEM 2 `start_stop.c'
-========================
+  It is used to check that the file format is valid.
 
-A
-~
 
-  Compile `start_stop.c' to the program `start_stop'. This program is
-  invoked identically to `birth_death' with two arguments, another
-  program name and an "interval" which is an integer number of
-  seconds. Run it like
+(C)
+~~~
+
+  After finishing with the file header, the next section of the program
+  begins with the following.
   ,----
-  | $> ./start_stop ./circle_of_life 3
+  |   ////////////////////////////////////////////////////////////////////////////////
+  |   // SEARCH the array of department offsets for the department named
+  |   // on the command line
+  | 
+  |   dept_offset_t *offsets =           // after file header, array of dept_offset_t structures
+  |     (dept_offset_t *) (file_bytes + sizeof(file_header_t));
+  | 
   `----
-  and show the output below. You may terminate the program early once
-  you see the pattern.
 
-Nants ingonyama bagithi baba
-Sithi uhm ingonyama
-Nants ingonyama bagithi baba
-SIGSTOP result: 0
-SIGCONT result: 0
-Sithi uhm ingonyama
-Ingonyama
-Siyo Nqoba
-SIGSTOP result: 0
+  Explain what value the `offsets_arr' variable is assigned and how it
+  is used in the remainder of the SEARCH section.
+
+  The offsets_arr is used to get a pointer to the offsets_arr part of the fd. It
+  finds this by calculating the offset file_header and adding this to the 
+  beginning of the memory mapping. It is then used to get the offsets of 
+  the rest of the departments.
 
 
-B
-~
+(D)
+~~~
 
-  Describe at a high level the effect that `start_stop' has on a child
-  process it runs
-
-The start_stop program kills a program with the SIGSTOP singal, prints to the screen,
-waits for the sleep() count, and then restarts it with the SIGCONT flag
-
-C
-~
-
-  Examine the source code of `start_stop.c' and determine the types of
-  signals it uses to alter behavior of its child process and paste the
-  corresponding lines of code below.
-
-    result = kill(pid,SIGSTOP);              // send a stop signal to child
-    result = kill(pid,SIGCONT);              // send a continue signal to child
-
-    The SIGSTOP temporarily stops the process and then the SIGCONT restarts it.
-
-D
-~
-
-  The program `no_interruptions.c' establishes signal handlers for some
-  signals allowing it to ignore signals that would normally terminate a
-  process. Investigate whether it is possible to similarly ignore the
-  signal used by `start_stop' to pause its child process. Hint: Consider
-  the provided program `cant_catch_sigstop.c' and run it with
-  `start_stop'.
-
-According to the manpage for signal(), 
-"The signals SIGKILL and SIGSTOP cannot be caught or ignored."
-
-That is why the handle_SIGSTOP() function is never run and never
-prints the "There's no SIGSTOPping me!"  line to the screen.
+  The final phase of the program begins below
+  ,----
+  |   ////////////////////////////////////////////////////////////////////////////////
+  |   // PRINT out all personnel in the specified department
+  |   ...
+  |   contact_t *dept_contacts = (contact_t *) (file_bytes + offset);
+  `----
+  Describe what value `dept_contacts' is assigned and how the final
+  phase uses it.
 
 
+  The dept_contacts is assigned the same way as the the other pointers, by calculating
+  an offset into the momory maping. It then iterates over the  nuber of contacts and
+  prints them from the memory mapping, as we know the pointer location of them. 
 
-
+  AFter this is complete, the memory mapping is deleted by using the munmap() system call.
