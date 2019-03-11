@@ -26,7 +26,8 @@ PROBLEM 1: Virtual Memory and pmap
   - local_arr[]
   Stack - Local Variables
   - malloc_arr
-  Heap
+  Pointer on stack, 
+  Data on Heap
 
 
 (B)
@@ -114,6 +115,8 @@ local_arr: lives in the region 00007fff47a0e000 which is the stack
 malloc_arr: This is in 000055c50eeb5000 section, which is the heap.
 
 mmap'd file:  This is 0xfff..ff which means it is not directly in program memory.
+              This is because the gettysburg.txt was not inlcuded in the program 
+              distribution.
 
 (D)
 ~~~
