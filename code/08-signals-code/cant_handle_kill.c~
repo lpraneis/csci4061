@@ -1,0 +1,28 @@
+// no_interruptions_sigaction.c: A C program that is not killed from
+// interrupt or terminate signals by establishing handlers that ignore
+// signals. sigaction() is used to set up the signal handlers.
+//
+// To stop this program from running, open another terminal and try
+//  > pkill -9 a.out
+// assuming you named the output program a.out
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+int main () {
+  struct sigaction my_sa = {};
+  my_sa.sa_handler = SIG_IGN;                 
+  int ret = sigaction(SIGKILL, &my_sa, NULL); // ignore SIGKILL?
+  if(ret == -1){
+    perror("failed to set up handler");
+    exit(1);
+  }
+ 
+  // Infinite loop 
+  while(1) {        
+    sleep(1);
+    printf("Ma-na na-na!\n");
+    fflush(stdout);
+  }
+  return 0;
+}
