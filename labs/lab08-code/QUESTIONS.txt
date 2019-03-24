@@ -1,0 +1,208 @@
+                           __________________
+
+                            LAB 08 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete the
+lab.
+
+
+PROBLEM 1 `sleep_print.c'
+=========================
+
+A
+~
+
+  Compile `sleep_print.c' using the provided `Makefile' which compiles
+  it to `sleep_print'.  Run the program as
+  ,----
+  | ./sleep_print 1 "hello"
+  `----
+  After a few seconds, press Ctrl-C to send an interrupt signal.  Paste
+  the results of your run below.
+
+[I] ➜ ./sleep_print 1 "hello"
+ 1 : hello  2 : hello  3 : hello ^Csleep_print: signaled, setting flag
+ 4 : hello sleep_print: finishing
+
+B
+~
+
+  Examine the code for `sleep_print.c' and note the use of the
+  `sigaction()' function to set up signal handlers. Inspect the signal
+  handler function and describe how the signal handler causes the
+  `sleep_print' to shut down in the space below.
+
+The signal handler function uses a sigaction struct to set up signal handlers for
+SIGTERM and SIGINT via the function handle_signals(). It sets the signaled global value to 1 to 
+break out of the while loop on line 21.
+
+PROBLEM 2 `read_AB.c'
+=====================
+
+  Note that `read_AB.c' uses the same techniques as `sleep_print.c' to
+  set up signal handlers and shut down on receiving a signal.
+
+
+A
+~
+
+  Compile `read_AB.c' and run it. Paste the results of running it for a
+  few seconds below.  Use Ctl-C to send an interrupt to end the program.
+
+read_AB: listening for children
+A had: | 1 : AAAA |
+B had: | 1 : BBBB |
+A had: | 2 : AAAA  3 : AAAA |
+B had: | 2 : BBBB |
+A had: | 4 : AAAA  5 : AAAA |
+^Csleep_print: signaled, setting flag
+sleep_print: signaled, setting flag
+read_AB: signaled, setting flag
+sleep_print: finishing
+sleep_print: finishing
+B had: | 3 : BBBB |
+read_AB: finishing
+
+
+B
+~
+
+  Examine the code for `read_AB.c' and note where `pipe(), fork(),
+  dup2()' are used to set up a communication channel for two children
+  referred to as A and B. Note that these two children both run
+  `sleep_print' but A has a 1 second delay while B has a 3 second delay.
+  Note the main `while()' of `read_AB' which repeatedly reads from the
+  pipes of its children.
+
+  In the space below explain why the output for the program has the
+  ordering that it does despite A producing A at a faster rate (every 1
+  second) than B (every 3 seconds).
+
+
+Becuase the printing is only done when while loop hits the read() call, the
+timing of A and B don't matter as they are child processes. The pipes are only read
+from when asked by the parent process.
+
+
+C
+~
+
+  In the output for `read_AB' there should be some lines for Child A
+  that look like
+  ,----
+  | A had: | 1 : AAAA |
+  `----
+  but also some lines that look like
+  ,----
+  | A had: | 4 : AAAA  5 : AAAA |
+  `----
+  and
+  ,----
+  | A had: |15 : AAAA 16 : AAAA 17 : AAAA |
+  `----
+  while Child B lines always look like
+  ,----
+  | B had: | 4 : BBBB |
+  `----
+  Explain why there is variance in Child A lines while Child B lines
+  look the same.
+
+
+  Because A has a delay time of 1 second, there are times when the pipe is being read while another
+  sleep_delay print call goes off. The B child, however, has a 3 second delay and so the IO time 
+  needed for reading from the pipe will almost always be less than 3 seconds.
+
+
+PROBLEM 3 `select_AB.c'
+=======================
+
+  Note that `select_AB.c' uses the same techniques as `sleep_print.c' to
+  set up signal handlers and shut down on receiving a signal.
+
+
+A
+~
+
+  Compile `select_AB.c' and run it. Paste the results of running it for
+  a few seconds below.  Use Ctl-C to send an interrupt to end the
+  program.
+
+select_AB: listening for children
+A had: | 1 : AAAA |
+A had: | 2 : AAAA |
+B had: | 1 : BBBB |
+A had: | 3 : AAAA |
+A had: | 4 : AAAA |
+A had: | 5 : AAAA |
+B had: | 2 : BBBB |
+A had: | 6 : AAAA |
+A had: | 7 : AAAA |
+^Csleep_print: signaled, setting flag
+sleep_print: signaled, setting flag
+sleep_print: finishing
+sleep_print: finishing
+select_AB: signaled, setting flag
+A had: | 8 : AAAA |
+B had: | 3 : BBBB |
+select_AB: finishing
+
+
+B
+~
+
+  Examine the code for `select_AB.c'. Like `read_AB', it uses `pipe(),
+  fork(), dup2()' to set up a communication channel for two children, A
+  and B, which run `sleep_print' at differing rates.  However, the main
+  `while()' of `select_AB' uses the `select()' system call to sleep
+  until output is available from a child.
+
+  In the space below explain why the output for the `select_AB' has the
+  ordering that it does and why it differs from `read_AB'.
+
+The select() call on line 69 differs from the read() call of read_AB.c as it 
+will sleep the parent process until a pipe from the read_set is changed. This means
+that any time a pipe is written to by either A or B, the parent process will wake up
+and print to the screen what was written to the corresponding pipe. This means that
+there will be more A lines than B as A writes once per second and B writes once per 3
+seconds.
+
+
+C
+~
+
+  Part of the setup for the `select()' system call manipulates an
+  `fd_set' data type using calls like `FD_ZERO'.  Do some research such
+  as reading the manual pages to determine how this type works.
+
+  Also explain how one can determine which children of A and B has input
+  available after the `select()' call returns.
+
+An fd_set is essentially a buffer that is fixed size. It is cleared by the call
+to FD_ZERO and is populated with file descriptors to check. Then, after the select()
+call, we can check to see if the ouptut was from A or B by using the FD_ISSET 
+to check and see if the pipeX[PREAD] is part of the set.
+
+
+D
+~
+
+  The output for `read_AB' contained mixed lengths for child A output as
+  in
+  ,----
+  | A had: | 1 : AAAA |
+  | A had: | 4 : AAAA  5 : AAAA |
+  | A had: |15 : AAAA 16 : AAAA 17 : AAAA |
+  `----
+
+  Explain why the output for `select_AB' does not have such differences.
+
+
+  select_AB does not have such differences as it prints to the screen, clearing 
+  the buffer, each time something is written to either pipeA or pipeB. This means that
+  each output will be a single print from the child.
