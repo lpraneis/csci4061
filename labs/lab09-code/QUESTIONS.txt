@@ -1,0 +1,208 @@
+                           __________________
+
+                            LAB 09 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1 `server_em.c'
+=======================
+
+A
+~
+
+  Examine the source code for `em_server.c'. Describe the
+  `requests.fifo' item that it creates.  Resolve theses specific items
+  1. What system call is used initially to delete any existing version
+     of `requests.fifo'?
+
+     the remove() system call
+
+  2. What system call is used to create `requests.fifo'?
+
+     the mkfifo() system call
+
+  3. What system call is used to set up reading from `requests.fifo'?
+     the open() system call
+
+
+B
+~
+
+  In the main `while()' loop of the server, describe how the server
+  handles requests from the client.
+  1. What C data type represents the requests from clients and what
+     parts does it have?
+
+     the request_t struct data type. It has a 256 byte char array client_fifo
+     and a 256 byte char array query_name.
+
+  2. How does the server use the request data to search for a name/email
+     association?
+
+    The server takes the query_name and uses strcmp to iterate through the 
+    data[][] array to match the email.
+
+  3. How does the server use the request data to communicate back to the
+     client?
+
+    The server writes the data to the fifo specified in request_t
+
+
+
+PROBLEM 2 `em_client.c' and Protocol
+====================================
+
+A
+~
+
+  Examine the code for `em_client.c'. Describe the steps that it
+  performs to contact the server to make a request and then receive the
+  response.  Describe how system calls are used in this process.
+
+  To contact the server, the client intializres a request_t struct and then
+  fills it with the command line args and the fifo name.
+
+  Then, it creates a fifo and sends the request to the server by using 
+  write() and opening the fifo, using blocking
+
+  After the response, the client prints the response and closes
+  all files.
+
+
+B
+~
+
+  Describe the overall Protocol of communication of between the server
+  and client. Which entity is responsible for creating, reading, and
+  writing each FIFO at what time.
+
+  First the client creates the pid.fifo. 
+
+  Then the server creates the requests.fifo
+
+  The client opens the requests.fifo and sends its request
+
+  The server recieves the request struct and finds the data
+
+  The server writes the data to the pid.fifo
+
+  The client reads from the pid.fifo
+
+
+C
+~
+
+  Use the provided script `run_simulation.sh <N>' to launch start a
+  server and run a specified number of clients such as 5 as below
+  ,----
+  | > ./run_simulation.sh 5
+  | SERVER 14205: starting up
+  | SERVER 14205: created new requests.fifo, now opening it
+  | SERVER 14205: opened requests.fifo, listening for requests
+  | CLIENT 14208: sending request: {fifo_file='14208.fifo' query_name='Christopher Jonathan' }
+  | CLIENT 14208: opening '14208.fifo'
+  | ...
+  | SERVER 14205: closing connection to fifo '14212.fifo'
+  | CLIENT 14211: response for name 'Dan Knights' is email 'knights@cs.umn.edu'
+  | CLIENT 14212: response for name 'George Karypis' is email 'karypis@cs.umn.edu'
+  | > 
+  `----
+  Examine the output for this run along with running the simulation
+  several more times with different numbers of clients.
+
+  Explain why there never seems to be any problem with multiple clients
+  overwriting data associated with each other particularly in the
+  `requests.fifo' and the client responses.
+
+  There is no error as the requests.fifo is a First in first out system and is
+  shared (in file descriptor read/write position) between all processes. So, any 
+  client process can add requests, even somewhat simultaneously
+
+
+
+PROBLEM 3: Pitfalls
+===================
+
+A
+~
+
+  Compile the server/client with `make' and run the server via
+  ,----
+  | > ./em_server
+  `----
+  Note the output that it prints. Then kill the server, perhaps with a
+  C-c interrupt signal.
+
+  Edit the `em_server.c' code to use the line marked `ALTERNATE
+  OPEN'. You should comment on the preceding `open()' line to get
+  ,----
+  | // int requests_fd = open("requests.fifo", O_RDWR);               // open FIFO read/write to avoid blocking
+  | int requests_fd = open("requests.fifo", O_RDONLY);             // ALTERNATE OPEN: read only
+  `----
+
+  Recompile and re-run `em_server' and explain why the output of the
+  server changes in this case. To understand the change in output, you
+  may need to review what happens when a process opens only one end of a
+  pipe/FIFO.
+
+Before change:
+
+SERVER  8701: starting up
+SERVER  8701: created new requests.fifo, now opening it
+SERVER  8701: opened requests.fifo, listening for requests
+^C
+
+After change:
+SERVER  9299: starting up
+SERVER  9299: created new requests.fifo, now opening it
+
+Because the open flags on the alternate version is read only ( O_RDONLY), the second end of 
+the fifo is never opened, and so the process hangs until the write end is open. Thus, it 
+never has a chance to start listening to the changes in the pipe as it is hung on line
+57.
+
+B
+~
+
+  With the ALTERNATE OPEN line in use (uncommented), run the
+  `run_simulation.sh 5' script a few times until it appears to stall and
+  fail to complete.
+
+  Examine the output of the simulation run carefully and find a line
+  involving the server that gives some hints as to why the simulation
+  fails. Show that line below.
+
+Fails at line:
+SERVER: read 0 bytes from requests.fifo; empty pipe, exiting
+CLIENT  9815: sending request: {fifo_file='9815.fifo' query_name='Chris Dovolis' }
+CLIENT  9815: opening '9815.fifo'
+CLIENT  9815: fifo opened, awaiting server response
+... (hangs)
+
+
+
+C
+~
+
+  Do some careful thinking, reading, and exploration and explain why the
+  ALTERNATE OPEN line creates a flaw in the server/client protocol that
+  is present in the original version.
+
+
+Because the server opens the pipe as read only, it only starts listening for requests after
+the pipe has already been written to. The order of the procedure is different, as the
+server will start reading only after the first client has written to the pipe. Therefore, after 
+the last client, the server will attempt to read from an empty pipe, causing an error.
+
+
+
+
+
+
