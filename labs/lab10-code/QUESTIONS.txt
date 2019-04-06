@@ -149,16 +149,13 @@ B
   - Construct an argument as to why the protocol used in this version is
     "faulty" as the name suggests.
 
- The shared reply queue can clobber the messages, as it is common betweeen 
- all the clients
-
-
+   The shared reply queue can clobber the messages, as it is common betweeen 
+   all the clients. This means that a request-answer pair are not always distinct.
 
   - Is this issue specific to Message Queues or would FIFOs have similar
     problems with the faulty protocol?
 
-    Fifos would not have the same issue because they are read in the 
-    order that they are put in.
+    Any system would have had this issue due to the shared queues.
 
   - What concurrency issues are present that are not a problem in the
     previous message queue/FIFO versions of the server/client?
