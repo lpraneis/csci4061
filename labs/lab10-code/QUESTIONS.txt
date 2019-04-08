@@ -36,6 +36,10 @@ A
   The mq_send() and mq_receive() calls are used to send/ recieve data
   from the queue.
 
+  mq_close() closes the queue
+
+  the mq_unlink() removes a message queue
+
   - Which of the server/clients create message queues?
 
 The client opens its own message queue and the server opens its 
