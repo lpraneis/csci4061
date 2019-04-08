@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import requests
 from zipfile import ZipFile
 from os import listdir,remove
