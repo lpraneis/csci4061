@@ -1,0 +1,15 @@
+Eee.....ll
+eeee..llll
+eeeeelllll
+eeee.lllll
+eeeallllll
+ea.all.lgl
+eaaaaaalgg
+aaaaaaalgg
+aaaAaallgg
+aaaaaaLlgG
+
+E: step  51 ( 0, 0) territory: 21                 
+A: step  99 ( 8, 3) territory: 28                 
+G: step  43 ( 9, 9) territory:  9                 
+L: step  99 ( 9, 6) territory: 32                 
