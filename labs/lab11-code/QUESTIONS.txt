@@ -4,8 +4,8 @@
                            __________________
 
 
-- Name: (Logan Praneis)
-- NetID: (prane001)
+- Name: (FILL THIS in)
+- NetID: (THE kauf095 IN kauf0095@umn.edu)
 
 Answer the questions below according to the lab specification. Write
 your answers directly in this text file and submit it to complete Lab01.
@@ -22,11 +22,6 @@ A
   do brief research and find out what the Unix command `watch' does and
   how it is used with this program.
 
-  The watch command just checks in on a program every interval and updates
-  the output on the screen.
-
-  The program opens up a file (worm_text) and then updates the charracters 
-  between EAGL. This uses multiple different threads to update the file.
 
 B
 ~
@@ -36,9 +31,6 @@ B
   make it relatively easy to change the file AND to change specific
   portions of the file.
 
-  The file is opened with a char array pointer using mmap() system call. 
-  It also utilizes a set of mutexes to allow each character array location
-  have a lock on it, so the changes are not clobbered. 
 
 C
 ~
@@ -48,17 +40,7 @@ C
   - Describe the function which is used to start a thread running and
     its arguments. Consult the manual for documentation on this function
     if needed.
-
-
-    The lines around 95 create the threads using the pthread_create function. Via
-    the man page, it creates a new thread and gives it the start routine worm_func in 
-    addition to the arguments params[i]
-
-
   - Describe the function which is used to wait until a thread finishes.
-
-  The pthread_join function is used to wait on the specified threads to terminate, as 
-  the threads will recombine after the children have finished.
 
 
 PROBLEM 2: The Worms
@@ -73,9 +55,6 @@ A
 
   Describe the basic algorithm that worms follow to do their work.
 
-  The worms first select a random move to start with, lock that position, and 
-  take the position over if it is not out of bounds and not claimed yet. It
-  repeats this until all spaces are filled.
 
 B
 ~
@@ -87,12 +66,6 @@ B
   used to set up this coordination mechanism.
 
 
-  The mutex function is used to make sure two worms avoid claiming the same 
-  piece of territory. The mechanism is set up in the main function around lines 75
-  that initialize the mutexes using pthread_mutex_init. Then, the worms use
-  the pthead_mutex_lock and the pthread_mutex_unlock to claim the mutex.
-
-
 C
 ~
 
@@ -100,17 +73,9 @@ C
   'slow': how is this artificial speed actually created in the
   `worm_func()' code.
 
-  This speed is artificially created using the delay part of the wormparam_t struct,
-  then utilized via the usleep() system call.
-
   While the speed differences of worms is an intended creation of the
   program, speculate as to what use threads can be when dealing with
   entities of different speeds.
-
-
-  Threads can be used with objects of different speeds as they can be left to calculate on
-  their own and then rejoined when the calculation is finished, utilizing processor
-  cores differently.
 
 
 Optional Enrichment: Threads in Python
@@ -136,9 +101,3 @@ Optional Enrichment: Threads in Python
 
   Time permitting, explore the code of `worms.py' and draw some
   parallels as to the C code.
-
-  This is similar to the C code in implementation, as both set up the worm
-  function to be run by the threads. Additionally, the python RLock() is similar
-  to a mutex in that it must be released by the thread that aquired it. However, 
-  due to the simpler implementation of the python version, it clocks in at about 80 lines 
-  where the C version is around 170. 

@@ -1,0 +1,185 @@
+                           __________________
+
+                            LAB 12 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+PROBLEM 1: Spell Checking Busily
+================================
+
+A
+~
+
+  Examine the file `check_spelling_busy.c' which performs the simple
+  task of spell checking words that are typed into the terminal using
+  pthreads.  Compile this program with the provided `Makefile' and run
+  it showing your results below.
+
+[I] ➜ ./check_spelling_busy
+Enter words to check spelling, Ctrl-d to end input
+tes
+'tes' INCORRECT
+test
+'test' ok
+if
+'if' ok
+iff
+'iff' INCORRECT
+testing
+'testing' ok
+testtting
+'testtting' INCORRECT
+
+B
+~
+
+  Examine the source code for `check_spelling_busy.c' and describe the
+  basic architecture of how input is accepted and spell checking is
+  done.  Describe what data structure is used to coordinate reading and
+  checking the spelling of words. How is access to this data structure
+  controlled so that the threads to not corrupt it.
+
+  The basic structure of the program is that it opens a child thread to check
+  words and a thread to read words. The read words thread runs the read_words 
+  function and continually brings words into the word_queue buffer. The 
+  check thread runs the check_thread function by scanning through every word in the
+  english text dictionary and testing if the inputted word is in the list. The
+  main data structure is a queue managed by locks via a pthread_mutex (word_queue_lock)
+
+
+C
+~
+
+  Identify what conditions are required for each of the thread types to
+  make progress: what must be true about the shared data structure in
+  order for them to proceed? How are these conditions checked?
+
+  In order for each thread to proceed, they must aquire the lock (mutex) on the
+  queue. This is done by aquiring the word_queue_lock. If the shared data structure 
+  is empty, the lock is immediately given up.
+
+
+D
+~
+
+  Time the following run of `check_spelling_busy'.
+  1. Start the program via `time ./check_spelling_busy'
+  2. Type the word 'hello' and press enter
+  3. Type Ctrl-d to end input
+
+  Report your timing for this run below which should appear somewhat
+  strange.  Attempt to explain this strange behavior based on your
+  observations of thread behavior above.
+
+Enter words to check spelling, Ctrl-d to end input
+hello
+'hello' ok
+
+real    0m1.374s
+user    0m1.375s
+sys     0m0.000s
+
+This time seems to appear that the waiting for the lock is busy, as the time
+for the user is the same as the real time, meaning the threads were not utilized 
+at all.
+
+
+PROBLEM 2: Spell Checking Efficiently
+=====================================
+
+A
+~
+
+  Examine the code for `check_spelling_condvar.c' which introduces
+  Pthread Condition Variables.  First, run the same experiment and
+  compare the timing to this new version:
+
+  1. Start the program via `time ./check_spelling_condvar'
+  2. Type the word 'hello' and press enter
+  3. Type Ctrl-d to end input
+
+Enter words to check spelling, Ctrl-d to end input
+hello
+'hello' ok
+real 1.70
+user 0.00
+sys 0.00
+
+B
+~
+
+  Much of the code between `check_spelling_busy' and
+  `check_spelling_condvar' is identical. An important difference is in
+  the portion where threads determine whether the conditions to proceed
+  have been met.
+
+  Examine closely the sections of code that `check_spelling_condvar.c'
+  use to determine when the reader thread can add something to the queue
+  and when checker thread has a word to check. Describe these
+  changes. Research the new functions that are used and briefly describe
+  them.
+
+  The pthread_cond_wait is used to sleep until the resource is available. 
+  This causes the thread to sleep until word_queue_not_full is set
+  to true and then aquire the correct lock.
+
+
+
+C
+~
+
+  What function call do the two threads use to communicate that the
+  'condition' of the queue has changed? What affect does this function
+  have on the other thread?
+
+
+  The pthread_cond_broadcast is used  to communicate that the condition has 
+  changed. This has the effect of causing the other thread to wake from sleep if
+  they were waiting.
+
+D
+~
+
+  This spell checking code is an instance of the classic
+  producer/consumer coordination problem where two different types of
+  threads/processes exist: one producing data (the reader in this case)
+  and the other consuming it (the spell checker in this case).  When
+  these threads can only proceed under different conditions, condition
+  variables make their coordination more efficient than would be
+  possible based on locks (mutexes) alone.
+
+  Benchmark the efficiency of spell-checking 100 words using the
+  following commands to compare the two variations. Show your code below
+  and describe the timing differences.
+
+  ,----
+  | > time tail -100 english-dict.txt | ./check_spelling_busy > /dev/null
+  | ...
+  | 
+  | > time tail -100 english-dict.txt | ./check_spelling_condvar > /dev/null
+  | ...
+  `----
+
+Busy
+real    0m0.981s
+user    0m1.868s
+sys     0m0.036s
+
+This has double the time as the threads are not being used concurrently, due
+to waiting
+
+
+Condvar
+real    0m0.951s
+user    0m0.919s
+sys     0m0.037s
+
+This has the same user / real time as the threads are being utilized due to the
+cond_wait and cond_broadcast
