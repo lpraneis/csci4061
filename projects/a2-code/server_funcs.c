@@ -3,7 +3,13 @@
 // Gets a pointer to the client_t struct at the given index. If the
 // index is beyond n_clients, the behavior of the function is
 // unspecified and may cause a program crash.
-client_t *server_get_client(server_t *server, int idx);
+client_t *server_get_client(server_t *server, int idx){
+  if (idx >= server->n_clients){
+    perror("Index out of bounds");
+    return NULL;
+  }
+  return &server->client[idx];
+}
 
 // Initializes and starts the server with the given name. A join fifo
 // called "server_name.fifo" should be created. Removes any existing
@@ -26,10 +32,13 @@ void server_start(server_t *server, char *server_name, int perms){
 
   remove(fifoname); // Remove any old fifo with this name
 
-  if (mkfifo(fifoname, DEFAULT_PERMS) < 0){
+  if (mkfifo(fifoname, perms) < 0){
     perror("Failed to create fifo");
   }
-  server->join_fd = open(fifoname, O_RDONLY, DEFAULT_PERMS);
+
+  if ((server->join_fd = open(fifoname, O_RDONLY, perms)) < 0){
+    perror("Unable to create fifo");
+  }
 
 
 }
@@ -75,7 +84,7 @@ void server_shutdown(server_t *server){
 int server_add_client(server_t *server, join_t *join){
   if (server->n_clients == MAXCLIENTS){
     perror("Server Queue Full");
-    return 1;
+    return -1;
   }
 
   //Server is not full, copy data to a client_t
@@ -92,6 +101,7 @@ int server_add_client(server_t *server, join_t *join){
   server->client[server->n_clients] = newclient;
   server->n_clients++;
 
+
   return 0;
 
 
@@ -104,12 +114,12 @@ int server_add_client(server_t *server, join_t *join){
 // preserving their order in the array; decreases n_clients.
 int server_remove_client(server_t *server, int idx){
   // Close Fifos
-  close(server->client[idx].to_client_fd);
-  close(server->client[idx].to_server_fd);
+  close(server_get_client(server, idx)->to_client_fd);
+  close(server_get_client(server, idx)->to_server_fd);
 
   // Remove the Fifos from the system
-  remove(server->client[idx].to_client_fname);
-  remove(server->client[idx].to_server_fname);
+  remove(server_get_client(server, idx)->to_client_fname);
+  remove(server_get_client(server, idx)->to_server_fname);
 
   //Decrease total clients
   server->n_clients--;
@@ -133,10 +143,10 @@ int server_remove_client(server_t *server, int idx){
 int server_broadcast(server_t *server, mesg_t *mesg){
   int nbytes;
   for(int i = 0; i < server->n_clients; i++){
-    nbytes = write(server->client[i].to_client_fd, &mesg, sizeof(mesg_t));
+    nbytes = write(server_get_client(server, i)->to_client_fd, &mesg, sizeof(mesg_t));
     if(nbytes < sizeof(mesg_t)){
       perror("Failed to write to client fifo");
-      return 1;
+      return -1;
     }
   }
   return 0;
@@ -149,20 +159,78 @@ int server_broadcast(server_t *server, mesg_t *mesg){
 // data_ready flags of each of client if data is ready for them.
 // Makes use of the select() system call to efficiently determine
 // which sources are ready.
-void server_check_sources(server_t *server);
+void server_check_sources(server_t *server){
+  fd_set ready_set;
+  struct timeval tv;
+  int maxfd = 1;
+  int clientfd;
+
+  tv.tv_sec = 1; // Wait 1 second
+  tv.tv_usec = 0;
+
+  FD_ZERO(&ready_set);
+
+  for(int i = 0; i< server->n_clients; i++){
+    // Add client 'to server' fd to fd set
+    clientfd = server_get_client(server, i)->to_server_fd;
+    maxfd = (maxfd < clientfd) ? clientfd: maxfd; //update maxfd
+    FD_SET(clientfd, &ready_set);
+  }
+
+  if( select(maxfd+1, &ready_set, NULL, NULL, &tv) != 0){
+    // some data is ready
+    
+    //set server join ready flag
+    server->join_ready = 1;
+
+    for(int i=0; i < server->n_clients; i ++){
+      if (FD_ISSET(server_get_client(server, i)->to_server_fd, &ready_set)){
+        // data is ready
+        server_get_client(server, i)->data_ready = 1;
+      } 
+    }
+  } 
+}
+
 
 // Return the join_ready flag from the server which indicates whether
 // a call to server_handle_join() is safe.
-int server_join_ready(server_t *server);
+int server_join_ready(server_t *server){
+  return server->join_ready;
+}
 
 // Call this function only if server_join_ready() returns true. Read a
 // join request and add the new client to the server. After finishing,
 // set the servers join_ready flag to 0.
-int server_handle_join(server_t *server);
+int server_handle_join(server_t *server){
+  if (server_join_ready(server)){
+    perror("Server join ready false");
+    return -1;
+  }
+
+  join_t buf;
+  int nread = read(server->join_fd, &buf, sizeof(join_t));
+  if (nread != sizeof(join_t)){
+    perror("Join fifo has incorrectly sized elements");
+    return -1;
+  }
+
+  if (server_add_client(server, &buf) < 0){
+    return -1;
+  }
+
+  //setting join ready back to 0
+  server->join_ready = 0;
+  return 0;
+}
+
 
 // Return the data_ready field of the given client which indicates
 // whether the client has data ready to be read from it.
-int server_client_ready(server_t *server, int idx);
+int server_client_ready(server_t *server, int idx){
+  return server_get_client(server, idx)->data_ready;
+}
+
 
 // Process a message from the specified client. This function should
 // only be called if server_client_ready() returns true. Read a
@@ -174,7 +242,46 @@ int server_client_ready(server_t *server, int idx);
 //
 // ADVANCED: Update the last_contact_time of the client to the current
 // server time_sec.
-int server_handle_client(server_t *server, int idx);
+int server_handle_client(server_t *server, int idx){
+  if (server_client_ready(server, idx) == 0){
+    perror("Client Data not ready");
+    return -1;
+  }
+
+  mesg_t buf;
+  int nread = read(server_get_client(server, idx)->to_server_fd, &buf, sizeof(mesg_t));
+  if( nread != sizeof(mesg_t)){
+    perror("Message incorrect size");
+    return -1;
+  }
+
+  // Analyze the message kind
+  if (buf.kind == BL_MESG){
+    server_broadcast(server, &buf);
+  } 
+  else if (buf.kind == BL_DEPARTED){
+    server_broadcast(server, &buf);
+
+  } 
+  // These should not be coming from a client...
+  /* else if (buf.kind == BL_JOINED){ */
+
+  /* } */ 
+  /* else if (buf.kind == BL_SHUTDOWN){ */
+
+  /* } */ 
+  else{
+    perror("Kind not supported");
+    return -1;
+
+  }
+
+  // Reset data ready flag to 0
+  server_get_client(server, idx)->data_ready = 0;
+
+  return 0;
+}
+
 
 // ADVANCED: Increment the time for the server
 void server_tick(server_t *server);
