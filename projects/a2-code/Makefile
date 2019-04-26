@@ -26,6 +26,7 @@ simpio: simpio.c simpio_demo.c
 
 clean:
 	rm -f simpio bl_server bl_client $(SOBJ) $(COBJ) $(TOBJ)
+	rm -f *.fifo
 
 # Testing Targets
 test-binary: $(TOBJ)

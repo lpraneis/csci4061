@@ -4,7 +4,7 @@
 // index is beyond n_clients, the behavior of the function is
 // unspecified and may cause a program crash.
 client_t *server_get_client(server_t *server, int idx){
-  if (idx >= server->n_clients){
+  if (idx > server->n_clients){
     perror("Index out of bounds");
     return NULL;
   }
@@ -30,15 +30,18 @@ void server_start(server_t *server, char *server_name, int perms){
   sprintf(server->server_name, "%s", server_name);
   snprintf(fifoname, name_length, "%s.fifo", server_name);
 
-  remove(fifoname); // Remove any old fifo with this name
+
+  if (remove(fifoname)< 0){ // Remove any old fifo with this name
+    perror("Unable to remove files\n");
+  }
+
 
   if (mkfifo(fifoname, perms) < 0){
     perror("Failed to create fifo");
   }
 
-  if ((server->join_fd = open(fifoname, O_RDONLY, perms)) < 0){
-    perror("Unable to create fifo");
-  }
+  server->join_fd = open(fifoname, O_RDWR, perms ); // open the fifo, nonblocking 
+  check_fail(server->join_fd < 0, 1, "Error opening join fifo\n");
 
 
 }
@@ -51,26 +54,23 @@ void server_start(server_t *server, char *server_name, int perms){
 // ADVANCED: Close the log file. Close the log semaphore and unlink
 // it.
 void server_shutdown(server_t *server){
+  dbg_printf("Shutting down server\n");
 
   // Close the old fifo
   if(close(server->join_fd) < 0){
     perror("Cannot close fifo");
   }
-  // Unlink old fifo
+  // Remove old fifo
   char fifoname[MAXPATH];
   snprintf(fifoname, strlen(server->server_name)+6, "%s.fifo", server->server_name);
-  unlink(fifoname);
+  if(remove(fifoname) < 0){
+    perror("Cannot remove fifo");
+  }
 
   // Create a shutdown mesg_t
   mesg_t shutdown_mgs;
   shutdown_mgs.kind = BL_SHUTDOWN;
   server_broadcast(server, &shutdown_mgs);
-  int current_clients = server->n_clients;
-  for(int i = 0; i < current_clients; i++){
-    // always removing 0 as server_remove_client shifts the array
-    server_remove_client(server, 0);
-  }
-
 
 }
 
@@ -82,29 +82,30 @@ void server_shutdown(server_t *server){
 // for the client to 0. Returns 0 on success and non-zero if the
 // server as no space for clients (n_clients == MAXCLIENTS).
 int server_add_client(server_t *server, join_t *join){
+
+  dbg_printf("server_add_client(): Adding %s\n", join->name);
+
   if (server->n_clients == MAXCLIENTS){
-    perror("Server Queue Full");
-    return -1;
+    perror("Server queue full");
+    exit(1);
   }
 
   //Server is not full, copy data to a client_t
-  client_t newclient;
-  strcpy(newclient.name, join->name);
-  strcpy(newclient.to_client_fname, join->to_client_fname);
-  strcpy(newclient.to_server_fname, join->to_server_fname);
-  newclient.data_ready = 0;
-  newclient.to_client_fd = open(newclient.to_client_fname, O_RDWR, DEFAULT_PERMS);
-  newclient.to_server_fd = open(newclient.to_server_fname, O_RDWR, DEFAULT_PERMS);
+  client_t *newclient = server_get_client(server, server->n_clients);
+  newclient->data_ready = 0;
+  
+  //Copy all data over from join request
+  strncpy(newclient->name, join->name, MAXNAME);
+  strncpy(newclient->to_client_fname, join->to_client_fname, MAXPATH);
+  strncpy(newclient->to_server_fname, join->to_server_fname, MAXPATH);
+  newclient->data_ready = 0;
+  newclient->to_client_fd = open(newclient->to_client_fname, O_WRONLY, DEFAULT_PERMS);
+  newclient->to_server_fd = open(newclient->to_server_fname, O_RDONLY, DEFAULT_PERMS);
 
-
-  // Copy data to server client array
-  server->client[server->n_clients] = newclient;
-  server->n_clients++;
-
+  server->n_clients++; //increments total number of clients
+  dbg_printf("server_add_client(): incrementing to %d clients\n", server->n_clients);
 
   return 0;
-
-
 }
 
 
@@ -112,26 +113,21 @@ int server_add_client(server_t *server, join_t *join){
 // disconnected. Close fifos associated with the client and remove
 // them.  Shift the remaining clients to lower indices of the client[]
 // preserving their order in the array; decreases n_clients.
+
 int server_remove_client(server_t *server, int idx){
-  // Close Fifos
-  close(server_get_client(server, idx)->to_client_fd);
+  close(server_get_client(server, idx)->to_client_fd); // Close Fifos
   close(server_get_client(server, idx)->to_server_fd);
 
-  // Remove the Fifos from the system
-  remove(server_get_client(server, idx)->to_client_fname);
+  remove(server_get_client(server, idx)->to_client_fname); // Remove the Fifos from the system
   remove(server_get_client(server, idx)->to_server_fname);
 
-  //Decrease total clients
-  server->n_clients--;
+  dbg_printf("server_remove_client(): removing %s\n", server->client[idx].name);
+  server->n_clients--; //Decrease total clients
 
-  // Shift all clients > idx down 1 position
-  for(int i = idx; i < server->n_clients;  i++){
+  for(int i = idx; i < server->n_clients;  i++){ // Shift all clients > idx down 1 position
     server->client[i] = server->client[i+1];
   }
-
   return 0;
-
-
 }
 
 
@@ -141,16 +137,11 @@ int server_remove_client(server_t *server, int idx){
 // ADVANCED: Log the broadcast message unless it is a PING which
 // should not be written to the log.
 int server_broadcast(server_t *server, mesg_t *mesg){
-  int nbytes;
   for(int i = 0; i < server->n_clients; i++){
-    nbytes = write(server_get_client(server, i)->to_client_fd, &mesg, sizeof(mesg_t));
-    if(nbytes < sizeof(mesg_t)){
-      perror("Failed to write to client fifo");
-      return -1;
-    }
+    int nbytes = write(server_get_client(server, i)->to_client_fd, mesg, sizeof(mesg_t));
+    check_fail(nbytes < 0, 1, "Error writing to client %d fifo\n", i);
   }
   return 0;
-
 }
 
 
@@ -165,25 +156,32 @@ void server_check_sources(server_t *server){
   int maxfd = 1;
   int clientfd;
 
-  tv.tv_sec = 1; // Wait 1 second
-  tv.tv_usec = 0;
+  tv.tv_sec = 0;
+  tv.tv_usec = 50000; //setting timeout wait to .5 seconds
 
   FD_ZERO(&ready_set);
 
-  for(int i = 0; i< server->n_clients; i++){
-    // Add client 'to server' fd to fd set
+  for(int i = 0; i < server->n_clients; i++){
     clientfd = server_get_client(server, i)->to_server_fd;
     maxfd = (maxfd < clientfd) ? clientfd: maxfd; //update maxfd
-    FD_SET(clientfd, &ready_set);
+    FD_SET(clientfd, &ready_set); // Add client 'to server' fd to fd set
   }
 
-  if( select(maxfd+1, &ready_set, NULL, NULL, &tv) != 0){
-    // some data is ready
-    
-    //set server join ready flag
-    server->join_ready = 1;
+  FD_SET(server->join_fd, &ready_set); // add the join fifo
+  maxfd = (maxfd < server->join_fd) ? server->join_fd: maxfd; //update maxfd
 
-    for(int i=0; i < server->n_clients; i ++){
+
+  if (select(maxfd+1, &ready_set, NULL, NULL, &tv) > 0){
+    // there is data ready
+
+    // Manage Join FD
+    if (FD_ISSET(server->join_fd, &ready_set)){
+      //add new client
+      server->join_ready = 1;
+      server_handle_join(server);
+    }
+
+    for(int i=0; i < server->n_clients; i ++){ // check all clients' data
       if (FD_ISSET(server_get_client(server, i)->to_server_fd, &ready_set)){
         // data is ready
         server_get_client(server, i)->data_ready = 1;
@@ -203,23 +201,28 @@ int server_join_ready(server_t *server){
 // join request and add the new client to the server. After finishing,
 // set the servers join_ready flag to 0.
 int server_handle_join(server_t *server){
-  if (server_join_ready(server)){
+  if (!server_join_ready(server)){
     perror("Server join ready false");
     return -1;
   }
 
   join_t buf;
   int nread = read(server->join_fd, &buf, sizeof(join_t));
-  if (nread != sizeof(join_t)){
-    perror("Join fifo has incorrectly sized elements");
-    return -1;
-  }
+  check_fail(nread < 0, 1, "Error on reading from join fifo\n");
+  dbg_printf("Reading a client of name: %s from join fifo\n", buf.name);
 
   if (server_add_client(server, &buf) < 0){
     return -1;
   }
 
+  // Broadcast when client joins
+  mesg_t join_msg;
+  join_msg.kind = BL_JOINED;
+  strncpy( join_msg.name, buf.name, MAXNAME);
+  server_broadcast(server, &join_msg);
+
   //setting join ready back to 0
+  dbg_printf("Added client: %s, setting join back to 0\n", buf.name);
   server->join_ready = 0;
   return 0;
 }
@@ -250,34 +253,22 @@ int server_handle_client(server_t *server, int idx){
 
   mesg_t buf;
   int nread = read(server_get_client(server, idx)->to_server_fd, &buf, sizeof(mesg_t));
-  if( nread != sizeof(mesg_t)){
-    perror("Message incorrect size");
-    return -1;
-  }
+  check_fail(nread < 0, 1, "Error reading from message fifo for client %d\n", idx);
+
 
   // Analyze the message kind
   if (buf.kind == BL_MESG){
     server_broadcast(server, &buf);
+    server_get_client(server, idx)->data_ready = 0; // set data ready to 0
   } 
   else if (buf.kind == BL_DEPARTED){
     server_broadcast(server, &buf);
-
+    server_remove_client(server,idx); // remove client that departed
   } 
-  // These should not be coming from a client...
-  /* else if (buf.kind == BL_JOINED){ */
-
-  /* } */ 
-  /* else if (buf.kind == BL_SHUTDOWN){ */
-
-  /* } */ 
   else{
     perror("Kind not supported");
     return -1;
-
   }
-
-  // Reset data ready flag to 0
-  server_get_client(server, idx)->data_ready = 0;
 
   return 0;
 }
