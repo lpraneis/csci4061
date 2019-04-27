@@ -3,6 +3,8 @@ books/
 labs/lab01-code/collatz/coll
 projects/a1-code/test-data/*.tmp
 projects/a1-code/Session.vim
+projects/a2-code/test-data/*
+projects/a2-code/Session.vim
  *.out
 
 testing/
