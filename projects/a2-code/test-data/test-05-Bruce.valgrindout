@@ -1,0 +1,36 @@
+==6343== Memcheck, a memory error detector
+==6343== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==6343== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==6343== Command: ../bl_client test-05-serv Bruce
+==6343== 
+-- Bruce JOINED --
+Bruce>>Hey big guy==6343== Thread 2:
+==6343== Syscall param write(buf) points to uninitialised byte(s)
+==6343==    at 0x4E4D2B7: write (write.c:27)
+==6343==    by 0x10A010: user_thread (bl_client.c:95)
+==6343==    by 0x4E436DA: start_thread (pthread_create.c:463)
+==6343==    by 0x517C88E: clone (clone.S:95)
+==6343==  Address 0x5c4b9ea is on thread 2's stack
+==6343==  in frame #1, created by user_thread (bl_client.c:78)
+==6343== 
+[Bruce] : Hey big guy
+-- Clark JOINED --
+Bruce>>==6343== Syscall param write(buf) points to uninitialised byte(s)
+==6343==    at 0x4E4D2B7: write (write.c:27)
+==6343==    by 0x10A0AC: user_thread (bl_client.c:106)
+==6343==    by 0x4E436DA: start_thread (pthread_create.c:463)
+==6343==    by 0x517C88E: clone (clone.S:95)
+==6343==  Address 0x5c4b9ea is on thread 2's stack
+==6343==  in frame #1, created by user_thread (bl_client.c:78)
+==6343== 
+
+==6343== 
+==6343== HEAP SUMMARY:
+==6343==     in use at exit: 0 bytes in 0 blocks
+==6343==   total heap usage: 8 allocs, 8 frees, 6,334 bytes allocated
+==6343== 
+==6343== All heap blocks were freed -- no leaks are possible
+==6343== 
+==6343== For counts of detected and suppressed errors, rerun with: -v
+==6343== Use --track-origins=yes to see where uninitialised values come from
+==6343== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

@@ -1,0 +1,43 @@
+==20728== Memcheck, a memory error detector
+==20728== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==20728== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==20728== Command: ../bl_client test-13-serv Bruce
+==20728== 
+-- Bruce JOINED --
+Bruce>>Batman!==20728== Thread 2:
+==20728== Syscall param write(buf) points to uninitialised byte(s)
+==20728==    at 0x4E4D2B7: write (write.c:27)
+==20728==    by 0x10A015: user_thread (bl_client.c:94)
+==20728==    by 0x4E436DA: start_thread (pthread_create.c:463)
+==20728==    by 0x517C88E: clone (clone.S:95)
+==20728==  Address 0x5c4b9ea is on thread 2's stack
+==20728==  in frame #1, created by user_thread (bl_client.c:77)
+==20728== 
+[Bruce] : Batman!
+-- Lois JOINED --
+[Clark] : Superman!
+[Lois] : Reporter?
+[Bruce] : Ha
+[Clark] : He he
+[Lois] : bite me
+-- Lois DEPARTED --
+-- Clark DEPARTED --
+Bruce>>==20728== Syscall param write(buf) points to uninitialised byte(s)
+==20728==    at 0x4E4D2B7: write (write.c:27)
+==20728==    by 0x10A0B1: user_thread (bl_client.c:105)
+==20728==    by 0x4E436DA: start_thread (pthread_create.c:463)
+==20728==    by 0x517C88E: clone (clone.S:95)
+==20728==  Address 0x5c4b9ea is on thread 2's stack
+==20728==  in frame #1, created by user_thread (bl_client.c:77)
+==20728== 
+
+==20728== 
+==20728== HEAP SUMMARY:
+==20728==     in use at exit: 0 bytes in 0 blocks
+==20728==   total heap usage: 8 allocs, 8 frees, 6,334 bytes allocated
+==20728== 
+==20728== All heap blocks were freed -- no leaks are possible
+==20728== 
+==20728== For counts of detected and suppressed errors, rerun with: -v
+==20728== Use --track-origins=yes to see where uninitialised values come from
+==20728== ERROR SUMMARY: 3 errors from 2 contexts (suppressed: 0 from 0)

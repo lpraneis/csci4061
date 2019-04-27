@@ -1,0 +1,44 @@
+==20701== Memcheck, a memory error detector
+==20701== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==20701== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==20701== Command: ../bl_server test-13-serv
+==20701== 
+Unable to remove files
+: No such file or directory
+Server Started
+Reading a client of name: Clark from join fifo
+server_add_client(): Adding Clark
+server_add_client(): incrementing to 1 clients
+==20701== Syscall param write(buf) points to uninitialised byte(s)
+==20701==    at 0x4E4D281: write (write.c:27)
+==20701==    by 0x10942D: server_broadcast (server_funcs.c:141)
+==20701==    by 0x1098BD: server_handle_join (server_funcs.c:222)
+==20701==    by 0x1096B0: server_check_sources (server_funcs.c:181)
+==20701==    by 0x109BB9: main (bl_server.c:29)
+==20701==  Address 0x1ffef3d534 is on thread 1's stack
+==20701==  in frame #2, created by server_handle_join (server_funcs.c:203)
+==20701== 
+Added client: Clark, setting join back to 0
+Reading a client of name: Bruce from join fifo
+server_add_client(): Adding Bruce
+server_add_client(): incrementing to 2 clients
+Added client: Bruce, setting join back to 0
+Reading a client of name: Lois from join fifo
+server_add_client(): Adding Lois
+server_add_client(): incrementing to 3 clients
+Added client: Lois, setting join back to 0
+server_remove_client(): removing Lois
+server_remove_client(): removing Clark
+server_remove_client(): removing Bruce
+Server Recieved Signal, Shutting Down
+Shutting down server
+==20701== 
+==20701== HEAP SUMMARY:
+==20701==     in use at exit: 0 bytes in 0 blocks
+==20701==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==20701== 
+==20701== All heap blocks were freed -- no leaks are possible
+==20701== 
+==20701== For counts of detected and suppressed errors, rerun with: -v
+==20701== Use --track-origins=yes to see where uninitialised values come from
+==20701== ERROR SUMMARY: 6 errors from 1 contexts (suppressed: 0 from 0)

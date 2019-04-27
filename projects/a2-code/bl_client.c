@@ -42,7 +42,7 @@ int main(int argc, char** argv){
   // Fill join request
   strcpy(join_request.to_client_fname, tofifo); 
   strcpy(join_request.to_server_fname, fromfifo);
-  strcpy(join_request.name, argv[2]);
+  strncpy(join_request.name, argv[2], MAXNAME);
 
   int server_fd = open(server_fifo, O_WRONLY, DEFAULT_PERMS);
   int nbytes = write(server_fd, &join_request, sizeof(join_t));
@@ -51,7 +51,9 @@ int main(int argc, char** argv){
 
 
   //set prompt
-  simpio_set_prompt(simpio, PROMPT);
+  char prompt[MAXNAME +2];
+  sprintf(prompt, "%s>>", join_request.name);
+  simpio_set_prompt(simpio, prompt);
   simpio_reset(simpio);
   simpio_noncanonical_terminal_mode();
 
@@ -96,6 +98,7 @@ void *user_thread(void *data){
   }
 
   // Write a departed message
+  pthread_cancel(server_thd); // kill the server thread
   mesg_t depart;
   strcpy(depart.name, join_request.name); // copy name from join_request
   depart.kind = BL_DEPARTED;
@@ -105,8 +108,6 @@ void *user_thread(void *data){
     dbg_printf("ERROR: Cannot write depart message\n");
     return (void*) -1;
   }
-  /* close(server_fd); //close fifo */
-  pthread_cancel(server_thd); // kill the server thread
   return (void*) 0;
 }
 

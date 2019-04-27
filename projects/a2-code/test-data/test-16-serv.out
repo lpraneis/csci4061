@@ -1,0 +1,25 @@
+Unable to remove files
+: No such file or directory
+Server Started
+Reading a client of name: Bruce from join fifo
+server_add_client(): Adding Bruce
+server_add_client(): incrementing to 1 clients
+Added client: Bruce, setting join back to 0
+Reading a client of name: Clark from join fifo
+server_add_client(): Adding Clark
+server_add_client(): incrementing to 2 clients
+Added client: Clark, setting join back to 0
+Reading a client of name: Lois from join fifo
+server_add_client(): Adding Lois
+server_add_client(): incrementing to 3 clients
+Added client: Lois, setting join back to 0
+Reading a client of name: Barbara from join fifo
+server_add_client(): Adding Barbara
+server_add_client(): incrementing to 4 clients
+Added client: Barbara, setting join back to 0
+server_remove_client(): removing Lois
+server_remove_client(): removing Clark
+server_remove_client(): removing Bruce
+server_remove_client(): removing Barbara
+Server Recieved Signal, Shutting Down
+Shutting down server

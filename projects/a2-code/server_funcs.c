@@ -218,7 +218,7 @@ int server_handle_join(server_t *server){
   // Broadcast when client joins
   mesg_t join_msg;
   join_msg.kind = BL_JOINED;
-  strncpy( join_msg.name, buf.name, MAXNAME);
+  strncpy(join_msg.name, buf.name, MAXNAME);
   server_broadcast(server, &join_msg);
 
   //setting join ready back to 0

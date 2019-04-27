@@ -53,7 +53,7 @@ typedef struct {
 
 // join_t: structure for requests to join the chat room
 typedef struct {
-  char name[MAXPATH];            // name of the client joining the server
+  char name[MAXNAME];            // name of the client joining the server
   char to_client_fname[MAXPATH]; // name of file server writes to to send to client
   char to_server_fname[MAXPATH]; // name of file client writes to to send to server
 } join_t;

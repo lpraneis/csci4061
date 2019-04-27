@@ -7,38 +7,39 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +34 bl_server.c
+badd +16 bl_server.c
 badd +470 term://.//25222:/usr/bin/zsh
 badd +121 term://.//25223:/usr/bin/zsh
-badd +67 bl_client.c
+badd +55 bl_client.c
 badd +142 server_funcs.c
-badd +13 util.c
-badd +10 blather.h
+badd +39 util.c
+badd +56 blather.h
 badd +19 term://.//25295:/usr/bin/zsh
-badd +1 simpio_demo.c
+badd +17 simpio_demo.c
 badd +2 man://select(3posix)
 badd +41 man://select(2)
 badd +11 man://write(3posix)
 badd +31 man://read(3posix)
-badd +1 term://.//6603:/usr/bin/zsh
+badd +1 term://.//11899:/usr/bin/zsh
 badd +27 term://.//4330:/usr/bin/zsh
 badd +53 term://.//27716:/usr/bin/zsh
 badd +145 man://signal(7)
 badd +29 man://sigaction(2)
 badd +29 man://sigaction(3posix)
-badd +129 term://.//4811:/usr/bin/zsh
+badd +129 term://.//11898:/usr/bin/zsh
 badd +38 man://timeval(3bsd)
 badd +22 man://remove(3)
+badd +9 man://strcpy(3)
+badd +12 man://printf(3)
+badd +118 test_blather.sh
+badd +0 test-data/test-02-Bruce.out.diff
+badd +2 test_blather_data.sh
+badd +0 bl_client
 argglobal
 silent! argdel *
 $argadd bl_server.c
 set stal=2
-edit bl_server.c
 set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
 wincmd _ | wincmd |
 split
 1wincmd k
@@ -48,37 +49,10 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
+exe '1resize ' . ((&lines * 27 + 29) / 59)
 exe '2resize ' . ((&lines * 27 + 29) / 59)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
-exe '3resize ' . ((&lines * 27 + 29) / 59)
-exe 'vert 3resize ' . ((&columns * 106 + 106) / 213)
 argglobal
-setlocal fdm=syntax
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=5
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-10
-normal! zo
-28
-normal! zo
-36
-normal! zo
-37
-normal! zo
-let s:l = 1 - ((0 * winheight(0) + 27) / 55)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-1
-normal! 0
-wincmd w
-argglobal
-if bufexists("term://.//4811:/usr/bin/zsh") | buffer term://.//4811:/usr/bin/zsh | else | edit term://.//4811:/usr/bin/zsh | endif
+if bufexists("term://.//11898:/usr/bin/zsh") | buffer term://.//11898:/usr/bin/zsh | else | edit term://.//11898:/usr/bin/zsh | endif
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -87,15 +61,15 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 121 - ((18 * winheight(0) + 13) / 27)
+let s:l = 3767 - ((12 * winheight(0) + 13) / 27)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-121
-normal! 0
+3767
+normal! 045|
 wincmd w
 argglobal
-if bufexists("term://.//6603:/usr/bin/zsh") | buffer term://.//6603:/usr/bin/zsh | else | edit term://.//6603:/usr/bin/zsh | endif
+if bufexists("term://.//11899:/usr/bin/zsh") | buffer term://.//11899:/usr/bin/zsh | else | edit term://.//11899:/usr/bin/zsh | endif
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -104,18 +78,38 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 72 - ((26 * winheight(0) + 13) / 27)
+let s:l = 27 - ((26 * winheight(0) + 13) / 27)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-72
-normal! 05|
+27
+normal! 0
 wincmd w
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
+exe '1resize ' . ((&lines * 27 + 29) / 59)
 exe '2resize ' . ((&lines * 27 + 29) / 59)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
-exe '3resize ' . ((&lines * 27 + 29) / 59)
-exe 'vert 3resize ' . ((&columns * 106 + 106) / 213)
+tabedit test_blather.sh
+set splitbelow splitright
+wincmd t
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 47 - ((46 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+47
+normal! 0
 tabedit bl_client.c
 set splitbelow splitright
 wincmd _ | wincmd |
@@ -140,22 +134,22 @@ setlocal fdn=20
 setlocal fen
 15
 normal! zo
-75
+77
 normal! zo
-79
+81
 normal! zo
-113
+114
 normal! zo
-117
+118
 normal! zo
-121
+122
 normal! zo
-let s:l = 20 - ((7 * winheight(0) + 27) / 55)
+let s:l = 105 - ((23 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-20
-normal! 0
+105
+normal! 03|
 wincmd w
 argglobal
 if bufexists("server_funcs.c") | buffer server_funcs.c | else | edit server_funcs.c | endif
@@ -206,26 +200,40 @@ normal! zc
 normal! zc
 24
 normal! zo
+39
+normal! zc
 24
 normal! zc
 56
 normal! zo
+60
+normal! zc
+66
+normal! zc
 56
 normal! zc
 84
 normal! zo
+88
+normal! zc
 84
 normal! zc
 117
 normal! zo
+127
+normal! zc
 117
 normal! zc
 139
 normal! zo
+140
+normal! zc
 139
 normal! zc
 153
 normal! zo
+166
+normal! zc
 178
 normal! zc
 184
@@ -234,6 +242,10 @@ normal! zo
 normal! zo
 184
 normal! zo
+185
+normal! zc
+184
+normal! zc
 184
 normal! zc
 153
@@ -242,100 +254,34 @@ normal! zc
 normal! zc
 203
 normal! zo
+204
+normal! zc
+214
+normal! zc
 203
 normal! zc
 233
 normal! zc
 248
 normal! zo
-let s:l = 265 - ((62 * winheight(0) + 27) / 55)
+249
+normal! zc
+260
+normal! zc
+264
+normal! zc
+268
+normal! zc
+let s:l = 279 - ((76 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-265
-normal! 03|
-wincmd w
-2wincmd w
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
-tabedit simpio_demo.c
-set splitbelow splitright
-wincmd t
-set winminheight=0
-set winheight=1
-set winminwidth=0
-set winwidth=1
-argglobal
-setlocal fdm=syntax
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=3
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-13
-normal! zo
-15
-normal! zo
-let s:l = 1 - ((0 * winheight(0) + 27) / 55)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-1
-normal! 011|
-tabedit util.c
-set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
-wincmd t
-set winminheight=0
-set winheight=1
-set winminwidth=0
-set winwidth=1
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
-argglobal
-setlocal fdm=syntax
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=2
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-8
-normal! zo
-let s:l = 44 - ((43 * winheight(0) + 27) / 55)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-44
-normal! 08|
-wincmd w
-argglobal
-if bufexists("blather.h") | buffer blather.h | else | edit blather.h | endif
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 46 - ((45 * winheight(0) + 27) / 55)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-46
+279
 normal! 0
 wincmd w
 exe 'vert 1resize ' . ((&columns * 106 + 106) / 213)
 exe 'vert 2resize ' . ((&columns * 106 + 106) / 213)
-tabnext 2
+tabnext 1
 set stal=1
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

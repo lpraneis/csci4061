@@ -1,0 +1,35 @@
+-- H JOINED --
+[A] : 9
+[D] : 10
+[E] : 11
+[C] : 12
+[B] : 13
+-- C DEPARTED --
+[F] : 14
+[G] : 15
+[D] : 16
+[E] : 17
+[B] : 18
+-- D DEPARTED --
+[F] : 19
+[F] : 20
+[E] : 21
+[A] : 22
+-- G DEPARTED --
+[B] : 23
+-- A DEPARTED --
+-- B DEPARTED --
+[F] : 24
+-- E DEPARTED --
+-- F DEPARTED --
+[H] : 25
+H>> 
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+Move the entire contents of this directory into the main a2-code
+directory.
+
+Add the following to your Makefile.
+
+## TEST TARGETS
+TEST_PROGRAMS = test_blather.sh test_blather_data.sh normalize.awk cat_sig.sh filter-semopen-bug.awk 
+
+test : test-blather
+
+make test-blather : bl_client bl_server $(TEST_PROGRAMS)
+	chmod u+rx $(TEST_PROGRAMS)
+	./test_blather.sh
+
+clean-tests :
+	cd test-data && \
+	rm -f *.* 

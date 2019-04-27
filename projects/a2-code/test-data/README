@@ -1,0 +1,8 @@
+This directory is for files generated during testing. It must be
+present for tests to work but the contents may be safely ignored.
+Most files matching the pattern *.* may be safely removed. The
+provided Makefile target
+
+make clean-tests
+
+will do this. Other files should not be modified.

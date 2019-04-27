@@ -1,0 +1,82 @@
+==21316== Memcheck, a memory error detector
+==21316== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==21316== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==21316== Command: ../bl_client test-17-serv Clark
+==21316== 
+-- Clark JOINED --
+!!! server is shutting down !!!
+Clark>>
+==21316== 
+==21316== HEAP SUMMARY:
+==21316==     in use at exit: 1,638 bytes in 4 blocks
+==21316==   total heap usage: 8 allocs, 4 frees, 6,334 bytes allocated
+==21316== 
+==21316== 36 bytes in 1 blocks are still reachable in loss record 1 of 4
+==21316==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==21316==    by 0x401D329: strdup (strdup.c:42)
+==21316==    by 0x4018656: _dl_load_cache_lookup (dl-cache.c:315)
+==21316==    by 0x4009382: _dl_map_object (dl-load.c:2255)
+==21316==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x40147C9: _dl_open (dl-open.c:605)
+==21316==    by 0x51C13AC: do_dlopen (dl-libc.c:96)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x51C236E: _dl_catch_error (dl-error-skeleton.c:215)
+==21316==    by 0x51C14D8: dlerror_run (dl-libc.c:46)
+==21316==    by 0x51C14D8: __libc_dlopen_mode (dl-libc.c:195)
+==21316==    by 0x4E4EDEA: pthread_cancel_init (unwind-forcedunwind.c:52)
+==21316== 
+==21316== 36 bytes in 1 blocks are still reachable in loss record 2 of 4
+==21316==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==21316==    by 0x400C3E7: _dl_new_object (dl-object.c:163)
+==21316==    by 0x40069A4: _dl_map_object_from_fd (dl-load.c:943)
+==21316==    by 0x4008FFB: _dl_map_object (dl-load.c:2389)
+==21316==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x40147C9: _dl_open (dl-open.c:605)
+==21316==    by 0x51C13AC: do_dlopen (dl-libc.c:96)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x51C236E: _dl_catch_error (dl-error-skeleton.c:215)
+==21316==    by 0x51C14D8: dlerror_run (dl-libc.c:46)
+==21316==    by 0x51C14D8: __libc_dlopen_mode (dl-libc.c:195)
+==21316==    by 0x4E4EDEA: pthread_cancel_init (unwind-forcedunwind.c:52)
+==21316== 
+==21316== 384 bytes in 1 blocks are still reachable in loss record 3 of 4
+==21316==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==21316==    by 0x4011E85: _dl_check_map_versions (dl-version.c:274)
+==21316==    by 0x401524B: dl_open_worker (dl-open.c:284)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x40147C9: _dl_open (dl-open.c:605)
+==21316==    by 0x51C13AC: do_dlopen (dl-libc.c:96)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x51C236E: _dl_catch_error (dl-error-skeleton.c:215)
+==21316==    by 0x51C14D8: dlerror_run (dl-libc.c:46)
+==21316==    by 0x51C14D8: __libc_dlopen_mode (dl-libc.c:195)
+==21316==    by 0x4E4EDEA: pthread_cancel_init (unwind-forcedunwind.c:52)
+==21316==    by 0x4E4B40F: pthread_cancel (pthread_cancel.c:38)
+==21316==    by 0x10A29D: server_thread (bl_client.c:147)
+==21316== 
+==21316== 1,182 bytes in 1 blocks are still reachable in loss record 4 of 4
+==21316==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==21316==    by 0x400C100: _dl_new_object (dl-object.c:73)
+==21316==    by 0x40069A4: _dl_map_object_from_fd (dl-load.c:943)
+==21316==    by 0x4008FFB: _dl_map_object (dl-load.c:2389)
+==21316==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x40147C9: _dl_open (dl-open.c:605)
+==21316==    by 0x51C13AC: do_dlopen (dl-libc.c:96)
+==21316==    by 0x51C22DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==21316==    by 0x51C236E: _dl_catch_error (dl-error-skeleton.c:215)
+==21316==    by 0x51C14D8: dlerror_run (dl-libc.c:46)
+==21316==    by 0x51C14D8: __libc_dlopen_mode (dl-libc.c:195)
+==21316==    by 0x4E4EDEA: pthread_cancel_init (unwind-forcedunwind.c:52)
+==21316== 
+==21316== LEAK SUMMARY:
+==21316==    definitely lost: 0 bytes in 0 blocks
+==21316==    indirectly lost: 0 bytes in 0 blocks
+==21316==      possibly lost: 0 bytes in 0 blocks
+==21316==    still reachable: 1,638 bytes in 4 blocks
+==21316==         suppressed: 0 bytes in 0 blocks
+==21316== 
+==21316== For counts of detected and suppressed errors, rerun with: -v
+==21316== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

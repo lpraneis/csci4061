@@ -1,0 +1,35 @@
+-- B JOINED --
+-- C JOINED --
+[C] : 1
+[B] : 2
+[B] : 3
+[A] : 4
+-- D JOINED --
+-- E JOINED --
+[A] : 5
+[D] : 6
+[E] : 7
+[C] : 8
+-- F JOINED --
+-- G JOINED --
+-- H JOINED --
+[A] : 9
+[D] : 10
+[E] : 11
+[C] : 12
+[B] : 13
+-- C DEPARTED --
+[F] : 14
+[G] : 15
+[D] : 16
+[E] : 17
+[B] : 18
+-- D DEPARTED --
+[F] : 19
+[F] : 20
+[E] : 21
+[A] : 22
+-- G DEPARTED --
+[B] : 23
+-- A DEPARTED --
+B>>
