@@ -1,0 +1,167 @@
+                           __________________
+
+                            LAB 13 QUESTIONS
+                           __________________
+
+
+- Name: (Logan Praneis)
+- NetID: (prane001)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+Problem 1 `http_get.c'
+======================
+
+  Examine the source code for `http_get.c' and use it to contact a few
+  hosts and files such as those shown at the top of the source.  Answer
+  the following questions.
+
+
+A
+~
+
+  - What is the full name of the that protocol is being employed?
+  HTTP - Hypertext transfer protocol
+  - Which port does the server listen on in this protocol?
+  This listens on port 80
+
+
+B
+~
+
+  Describe which system calls are used to find an internet address,
+  create a socket, and connect the socket to the found address.
+
+  getaddrinfo() is used to get the server address for the hostname used
+
+  socket() is used to set up the socket file descriptor
+
+  connect() is used to connect the socket to the server
+
+  freaddrinfo() is used to free the memory for the serv_addr struct
+
+
+C
+~
+
+  In this protocol, which entity, SERVER or CLIENT, sends data first?
+  (Though you don't have access to a server code, this should be obvious
+  from the structure of the client code).
+
+
+  The client sends data first by writing the GET request to the server, on line 88
+
+
+D
+~
+
+  Does the protocol work in plain text (human readable) or in binary
+  format (harder for humans to read directly).  Show examples/evidence
+  to support your answer.
+
+  This protocol works in plain text, as the response buffer is written 
+  directly to stdout after reading from the server. If this were binary
+  format, the response would have to be translated to human readable text first.
+
+
+E
+~
+
+  Many protocols use /headers/ which are meant to convey information
+  between the communication programs about the state of the
+  communication but are NOT data that a program user would be interested
+  in.  Show a few headers which appear in communication and describe
+  what you infer their meaning to be.
+
+  The headers at the beginning show information about the server where the response is
+  being read from. 
+Server: Apache
+Last-Modified: Sun, 07 May 2017 22:04:33 GMT
+ETag: "131a-54ef64ebcd735"
+Accept-Ranges: bytes
+Content-Length: 4890
+Vary: Accept-Encoding
+
+
+F
+~
+
+  Attempting to hunt down the actual homepage for the UMN via
+  ,----
+  | ./http_get twin-cities.umn.edu /
+  `----
+  will produce an interesting conundrum: the address to be contacted to
+  retrieve the file uses a DIFFERENT PROTOCOL.
+
+  Identify this other protocol, the port its servers use, and why it
+  would be much more complex to write a client to use it.
+
+-------
+RESPONSE
+-------
+HTTP/1.1 301 Moved Permanently
+Server: nginx
+Date: Fri, 26 Apr 2019 18:48:28 GMT
+Content-Type: text/html; charset=UTF-8
+X-Drupal-Cache: MISS
+X-Content-Type-Options: nosniff
+Etag: "1556304508-0"
+Cache-Control: public, max-age=86400
+Last-Modified: Fri, 26 Apr 2019 18:48:28 GMT
+Expires: Sun, 19 Nov 1978 05:00:00 GMT
+Vary: Cookie
+Location: https://twin-cities.umn.edu/
+X-Request-ID: v-e1637d5a-6853-11e9-9ff3-22000aec9f4d
+X-AH-Environment: prod
+Age: 81127
+Via: varnish
+X-Cache: HIT
+X-Cache-Hits: 19112
+Content-Length: 21
+Connection: close
+
+301 Moved Permanently-------
+
+This uses https protocol, which is much more complicated as it is encrypted, 
+and so plaintext data cannot be read / written as easily.
+
+Problem 2 `http_get_ssl.c'
+==========================
+
+  Examine the source code for `http_get_ssl.c' and use it to contact
+  some of the same hosts that you did with `http_get.c'.  Answer the
+  following questions.
+
+
+A
+~
+
+  Determine what additional measures `http_get_ssl.c' employs to use a
+  secure protocol for communication with a server.  Show the code block
+  that accomplishes this (though no explanation is required).
+
+  OpenSSL_add_all_algorithms();
+  SSL_library_init();
+  const SSL_METHOD *method = SSLv23_client_method();
+  SSL_CTX *ctx = SSL_CTX_new(method);
+  SSL *ssl_connection = SSL_new(ctx); 
+  assert(ssl_connection != NULL);
+  SSL_set_fd(ssl_connection, sockfd);
+  SSL_connect(ssl_connection);
+
+  This code sets up an ssl connection via the ssl library functions.
+  It uses sslv23  (which is deprecated) to set up an ssl connection.
+
+B
+~
+
+  Aside from the code block that is added above to enable secure
+  communication, are there any other large changes between `http_get.c'
+  and `http_get_ssl.c' to implement the secure communication version?
+
+When the data is read, you have to use 
+      SSL_read(ssl_connection, response, MAXDATASIZE); 
+as this is encrypted, and so the plaintext will be garbage.
+
