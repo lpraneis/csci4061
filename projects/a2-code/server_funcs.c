@@ -69,6 +69,7 @@ void server_shutdown(server_t *server){
 
   // Create a shutdown mesg_t
   mesg_t shutdown_mgs;
+  memset(&shutdown_mgs, 0, sizeof(mesg_t));
   shutdown_mgs.kind = BL_SHUTDOWN;
   server_broadcast(server, &shutdown_mgs);
 
@@ -217,6 +218,7 @@ int server_handle_join(server_t *server){
 
   // Broadcast when client joins
   mesg_t join_msg;
+  memset(&join_msg, 0, sizeof(mesg_t));
   join_msg.kind = BL_JOINED;
   strncpy(join_msg.name, buf.name, MAXNAME);
   server_broadcast(server, &join_msg);

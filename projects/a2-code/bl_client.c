@@ -40,6 +40,7 @@ int main(int argc, char** argv){
   }
 
   // Fill join request
+  memset(&join_request, 0, sizeof(join_t)); // initialize join_t to 0
   strcpy(join_request.to_client_fname, tofifo); 
   strcpy(join_request.to_server_fname, fromfifo);
   strncpy(join_request.name, argv[2], MAXNAME);
@@ -86,7 +87,7 @@ void *user_thread(void *data){
     }
     if(simpio->line_ready){
       mesg_t newmsg;
-
+      memset(&newmsg, 0, sizeof(mesg_t));
       newmsg.kind = BL_MESG;
       strcpy(newmsg.body, simpio->buf); // copy from line to mesg_t
       strcpy(newmsg.name, join_request.name); // copy name from join_request
@@ -97,18 +98,19 @@ void *user_thread(void *data){
     }
   }
 
-  // Write a departed message
   pthread_cancel(server_thd); // kill the server thread
-  mesg_t depart;
+
+  mesg_t depart; // Write a departed message
+  memset(&depart, 0, sizeof(mesg_t)); // initialize blocks to 0
   strcpy(depart.name, join_request.name); // copy name from join_request
   depart.kind = BL_DEPARTED;
   int nbytes = write(server_fd, &depart, sizeof(mesg_t));
   if (nbytes < 0 ){
     // couldn't be written correctly
     dbg_printf("ERROR: Cannot write depart message\n");
-    return (void*) -1;
+    exit(1);
   }
-  return (void*) 0;
+  return NULL;
 }
 
 void *server_thread(void* data){
@@ -137,7 +139,7 @@ void *server_thread(void* data){
       } else{
         // error, kind not supported
         dbg_printf("Unknown type for incoming message\n");
-        return (void *) -1;
+        return NULL;
       }
     }
   }
@@ -146,6 +148,6 @@ void *server_thread(void* data){
   iprintf(simpio, "!!! server is shutting down !!!\n");
   pthread_cancel(user_thd);
 
-  return (void *) 0;
+  return NULL;
 }
 
