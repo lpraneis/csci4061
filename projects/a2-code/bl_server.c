@@ -16,7 +16,8 @@ int main(int argc, char** argv){
 
   struct sigaction sa = {
   .sa_handler = handle_signal,
-  .sa_flags = SA_RESTART,
+  // use the SA_RESTART flag in case a system call is interrupted
+  .sa_flags = SA_RESTART, 
   }; // Set up signal handler
 
   sigaction(SIGTERM, &sa, NULL);

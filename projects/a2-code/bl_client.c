@@ -1,4 +1,7 @@
 #include "blather.h"
+//This is for any extra characters in strings
+//such as ".from.fifo". Used for snprintf(), strncpy()
+#define EXTRACHARS 16 
 
 void *user_thread(void *data);
 void *server_thread(void *data);
@@ -14,9 +17,9 @@ join_t join_request;
 
 int main(int argc, char** argv){
 
-  char tofifo[MAXNAME+10];
-  char fromfifo[MAXNAME+16];
-  char server_fifo[MAXNAME+10];
+  char tofifo[MAXNAME+EXTRACHARS];
+  char fromfifo[MAXNAME+EXTRACHARS];
+  char server_fifo[MAXNAME+EXTRACHARS];
 
   if (argc < 3){
     printf("ERROR: Not enough arguments\n");
@@ -50,10 +53,10 @@ int main(int argc, char** argv){
   check_fail(nbytes < 0, 0, "Incorrect size join request\n");
 
 
-
   //set prompt
   char prompt[MAXNAME +2];
   sprintf(prompt, "%s>>", join_request.name);
+
   simpio_set_prompt(simpio, prompt);
   simpio_reset(simpio);
   simpio_noncanonical_terminal_mode();
@@ -87,6 +90,7 @@ void *user_thread(void *data){
     }
     if(simpio->line_ready){
       mesg_t newmsg;
+      // set up a new message struct
       memset(&newmsg, 0, sizeof(mesg_t));
       newmsg.kind = BL_MESG;
       strcpy(newmsg.body, simpio->buf); // copy from line to mesg_t
@@ -144,7 +148,7 @@ void *server_thread(void* data){
     }
   }
 
-  // Broken, shudown message recieved
+  // Broke, shudown message recieved
   iprintf(simpio, "!!! server is shutting down !!!\n");
   pthread_cancel(user_thd);
 

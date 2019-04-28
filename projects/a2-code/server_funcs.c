@@ -153,12 +153,14 @@ int server_broadcast(server_t *server, mesg_t *mesg){
 // which sources are ready.
 void server_check_sources(server_t *server){
   fd_set ready_set;
-  struct timeval tv;
   int maxfd = 1;
   int clientfd;
 
-  tv.tv_sec = 0;
-  tv.tv_usec = 50000; //setting timeout wait to .5 seconds
+  struct timeval tv = {
+    .tv_sec = 0,
+    .tv_usec = 50000, //setting timeout wait to .5 seconds
+  };
+
 
   FD_ZERO(&ready_set);
 
