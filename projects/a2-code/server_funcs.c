@@ -31,9 +31,8 @@ void server_start(server_t *server, char *server_name, int perms){
   snprintf(fifoname, name_length, "%s.fifo", server_name);
 
 
-  if (remove(fifoname)< 0){ // Remove any old fifo with this name
-    perror("Unable to remove files\n");
-  }
+  remove(fifoname); // not error checking because most of the time,
+                    // this file will not exist.
 
 
   if (mkfifo(fifoname, perms) < 0){
@@ -43,6 +42,26 @@ void server_start(server_t *server, char *server_name, int perms){
   server->join_fd = open(fifoname, O_RDWR, perms ); // open the fifo, nonblocking 
   check_fail(server->join_fd < 0, 1, "Error opening join fifo\n");
 
+  // Advanced: create log file
+  char logname[name_length];
+  snprintf(logname, name_length, "%s.log", server->server_name);
+
+  struct stat st;
+
+  int logfd = open(logname, O_CREAT | O_WRONLY | O_APPEND, perms);
+  check_fail(logfd < 0, 1, "Error creating log file\n");
+
+  stat(logname, &st); // gather stats on file
+
+  server->log_fd = logfd;
+
+  if (st.st_size == 0){ // new logfile, add a who_t to the top
+    who_t initial; // create initial who_t for top of file
+    memset(&initial, 0, sizeof(who_t));
+    if(write(server->log_fd, &initial, sizeof(who_t)) < 0){
+      perror("Unable to write to log\n");
+    }
+  }
 
 }
 
@@ -72,6 +91,11 @@ void server_shutdown(server_t *server){
   memset(&shutdown_mgs, 0, sizeof(mesg_t));
   shutdown_mgs.kind = BL_SHUTDOWN;
   server_broadcast(server, &shutdown_mgs);
+
+  if( close(server->log_fd) < 0){
+    perror("Unable to close log\n");
+  }
+
 
 }
 
@@ -141,6 +165,9 @@ int server_broadcast(server_t *server, mesg_t *mesg){
   for(int i = 0; i < server->n_clients; i++){
     int nbytes = write(server_get_client(server, i)->to_client_fd, mesg, sizeof(mesg_t));
     check_fail(nbytes < 0, 1, "Error writing to client %d fifo\n", i);
+  }
+  if (mesg->kind != BL_PING){
+     server_log_message(server, mesg);
   }
   return 0;
 }
@@ -306,4 +333,8 @@ void server_write_who(server_t *server);
 
 // ADVANCED: Write the given message to the end of log file associated
 // with the server.
-void server_log_message(server_t *server, mesg_t *mesg);
+void server_log_message(server_t *server, mesg_t *mesg){
+  if (write(server->log_fd, mesg, sizeof(mesg_t)) < 0){
+    perror("Error writing to log file\n");
+  }
+}

@@ -10,12 +10,14 @@ TOBJ = server_funcs.o util.o simpio.o
 .PHONY: clean, test, clean-tests,  all, test-shell
 
 # Normal Targets
-all: bl_server bl_client
+all: bl_server bl_client bl_showlog
 
 bl_server: $(SOBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 bl_client: $(COBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
+bl_showlog: bl_showlog.o util.o 
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 simpio: simpio.c simpio_demo.c
@@ -25,7 +27,7 @@ simpio: simpio.c simpio_demo.c
 	$(CC) -c -o $@ $< $(LDFLAGS)
 
 clean:
-	rm -f simpio bl_server bl_client $(SOBJ) $(COBJ) $(TOBJ)
+	rm -f simpio bl_showlog bl_server bl_client $(COBJ) $(SOBJ) $(TOBJ)
 	rm -f *.fifo
 
 ## TEST TARGETS
