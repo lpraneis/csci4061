@@ -1,0 +1,94 @@
+                       _________________________
+
+                        LAB 14 REVIEW QUESTIONS
+                       _________________________
+
+
+- Name: (FILL THIS in)
+- NetID: (THE kauf0095 IN kauf0095@umn.edu)
+
+Answer the questions below according to the lab specification. Write
+your answers directly in this text file and submit it to complete Lab01.
+
+
+Problem 1: Efficient Thread Coordination
+========================================
+
+  Polly is coding a short routine to determine when the results of a
+  complex computation are complete and then print it. The GUI
+  application she is working is divided into many threads with some
+  global variables to coordinate them. Polly starts with the code below
+  which seems to work to print the results when the computation thread
+  completes them and marks them as ready.
+  ,----
+  | result_t result;
+  | pthread_mutex_t result_lock;
+  | 
+  | void check_and_print() {
+  |   while(1){
+  |     pthread_mutex_lock(&result_lock);
+  |     if(result.ready == 1){
+  |       break;
+  |     }
+  |     pthread_mutex_unlock(&result_lock);
+  |   }
+  |   print_results();
+  |   pthread_mutex_unlock(&result_lock);
+  | }
+  `----
+  However, Polly notices that while her routine is running, the GUI
+  responsiveness slows down tremendously. On profiling her code, she is
+  shocked to see that her a whole CPU Core is utilized at 100% on her
+  `check_and_print()' routine.  Polly is confused as she learned in her
+  OS class that `pthread_mutexes' use efficient blocking operations when
+  contending for locks. She is stumped and requires your help to improve
+  her code.
+
+  1. Polly is correct that `pthread_mutexes' use blocking operations
+     when contending for locks. Explain, though, why her code is still
+     potentially going to use a lot of CPU time.
+
+  2. Describe a thread coordination mechanism that Polly could use to
+     increase the efficiency of her code and get the blocking behavior
+     she is aiming for. Include some modified code to illustrate the new
+     approach.
+
+
+Problem 2: Private Messages
+===========================
+
+  Consider the addition of private messages to the blather
+  server/client.  This feature would allow a user to type a message like
+  ,----
+  | Bruce>> @Lois I know Clark's alter ego
+  `----
+  and have it only delivered to the user specified with the @ symbol,
+  Lois in this case, rather than have the message broadcast to all
+  users. Only on the screen of Lois and Bruce would appear the private
+  message delivery:
+  ,----
+  | [Private: Bruce @ Lois] : I know Clark's alter ego
+  `----
+  All other users would not see this message.
+
+  Discuss the alterations to server and client that would be required to
+  implement this feature. Include in your description.
+  1. Any additional data types or alterations to existing data types
+  2. Any additional FIFOs or protocol alterations
+  3. Changes required for bl-client to implement private messages
+  4. Changes required for bl-server to implement private messages
+
+
+Problem 3: Client Socket Setup
+==============================
+
+  Identify the main steps for a C program to set up a "client" socket
+  which will communicate with remote machine which has a known open port
+  and exchange information.
+
+
+Problem 4: Server Socket Setup
+==============================
+
+  Identify the main steps for a C program to set up a "server" socket
+  which will listen for connections from remote machine.
